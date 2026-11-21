@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.lumora.game'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.lumora.game'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    signingConfigs {
+        // Test/yan yükleme anahtarı. Play Store'a yüklemeden önce kendi gizli anahtarınızla değiştirin.
+        lumora {
+            storeFile file('../keystore/lumora-release.jks')
+            storePassword 'lumora123'
+            keyAlias 'lumora'
+            keyPassword 'lumora123'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.lumora
+        }
+        debug {
+            signingConfig signingConfigs.lumora
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Web varlıklarını sıkıştırmadan paketle (WebView daha hızlı okur)
+    androidResources {
+        noCompress += ['js', 'css', 'html']
+    }
+}
