@@ -273,7 +273,7 @@
         list.appendChild(r);
       }
       list.appendChild(h('<div class="about"><img src="img/emmi-games-mini.svg" alt="EMMİ GAMES"><span>Bir EMMİ GAMES oyunu</span></div>'));
-      list.appendChild(h('<p class="credit">Lumora v2.1 — tüm görseller ve sesler oyun içinde prosedürel olarak üretilir. Reklam yok, satın alma yok, internet gerekmez.</p>'));
+      list.appendChild(h('<p class="credit">Lumora v2.2 — tüm görseller ve sesler oyun içinde prosedürel olarak üretilir. Reklam yok, satın alma yok, internet gerekmez.</p>'));
       this.show(el, 'settings');
     },
 
@@ -325,7 +325,11 @@
       const n = game.swarm.length;
       if (last.n !== n) {
         r.swarm.textContent = n;
-        if (n > (last.n || 0)) { r.swarmBox.classList.remove('bump'); void r.swarmBox.offsetWidth; r.swarmBox.classList.add('bump'); }
+        // Zorunlu yeniden yerleşim (offsetWidth okuma) yerine Web Animations: ana iş parçacığını kilitlemez
+        if (n > (last.n || 0) && r.swarmBox.animate && (!this._bumpT || performance.now() - this._bumpT > 250)) {
+          this._bumpT = performance.now();
+          r.swarmBox.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'ease-out' });
+        }
         r.swarmBox.classList.toggle('danger', n < 3);
         last.n = n;
       }

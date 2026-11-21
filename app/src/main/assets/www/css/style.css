@@ -4,7 +4,7 @@
   --gold2: #ff9a3c;
   --mint: #8fffe0;
   --ink: #0b0820;
-  --glass: rgba(18, 16, 48, 0.62);
+  --glass: rgba(18, 16, 48, 0.86);
   --line: rgba(190, 220, 255, 0.18);
   --txt: #eef4ff;
   --dim: #a9b4d8;
@@ -29,7 +29,7 @@ svg { width: 1em; height: 1em; fill: currentColor; stroke: currentColor; stroke-
 /* ekranlar */
 .screen { position: absolute; inset: 0; display: flex; flex-direction: column; opacity: 0; transition: opacity .35s ease; }
 .screen.in { opacity: 1; }
-.screen.overlay { background: radial-gradient(ellipse at 50% 40%, rgba(10, 8, 30, .35), rgba(3, 2, 12, .82)); align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+.screen.overlay { background: radial-gradient(ellipse at 50% 40%, rgba(10, 8, 30, .35), rgba(3, 2, 12, .82)); align-items: center; justify-content: center; }
 .title-screen { align-items: center; justify-content: space-between; padding: calc(var(--st) + 9vh) 24px calc(var(--sb) + 54px); pointer-events: none !important; }
 .title-screen .menu, .title-screen .title-foot { pointer-events: auto; }
 .logo-wrap { position: relative; text-align: center; animation: floaty 5s ease-in-out infinite; }
@@ -47,7 +47,7 @@ svg { width: 1em; height: 1em; fill: currentColor; stroke: currentColor; stroke-
 /* düğmeler */
 .btn { position: relative; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(60, 70, 140, .55), rgba(25, 22, 70, .7));
   color: var(--txt); font: 700 17px/1.1 inherit; font-family: inherit; padding: 15px 18px; border-radius: 18px; letter-spacing: .02em;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .14); backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .14);
   transition: transform .12s ease, filter .2s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .btn small { font-size: 12px; font-weight: 600; opacity: .75; }
 .btn:active { transform: scale(.95); }
@@ -55,15 +55,15 @@ svg { width: 1em; height: 1em; fill: currentColor; stroke: currentColor; stroke-
   box-shadow: 0 0 28px rgba(255, 170, 70, .55), 0 8px 22px rgba(0, 0, 0, .35), inset 0 2px 0 rgba(255, 255, 255, .6); }
 .btn.primary small { color: #6a2c0c; }
 .btn.big { font-size: 21px; padding: 19px 18px; animation: pulseGlow 2.2s ease-in-out infinite; }
-@keyframes pulseGlow { 50% { box-shadow: 0 0 44px rgba(255, 180, 80, .8), 0 8px 22px rgba(0, 0, 0, .35), inset 0 2px 0 rgba(255, 255, 255, .6); } }
+@keyframes pulseGlow { 50% { transform: scale(1.03); } }
 .btn.small { font-size: 15px; padding: 12px 10px; border-radius: 15px; }
 .btn.icon { flex: 0 0 52px; font-size: 20px; }
 .btn.ghost { background: rgba(255, 255, 255, .06); box-shadow: none; }
 .btn.locked { filter: grayscale(.8) brightness(.7); }
 .btn.danger { color: #ffb0c0; margin-top: 18px; }
 
-.pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px; background: rgba(10, 8, 30, .55);
-  border: 1px solid var(--line); font-size: 14px; color: #fff3c8; backdrop-filter: blur(6px); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px; background: rgba(10, 8, 30, .78);
+  border: 1px solid var(--line); font-size: 14px; color: #fff3c8; }
 .pill svg { color: var(--gold); font-size: 15px; }
 .pill.amber svg { color: #ffae42; }
 .title-foot { display: flex; gap: 10px; }
@@ -129,7 +129,7 @@ svg { width: 1em; height: 1em; fill: currentColor; stroke: currentColor; stroke-
 .node.boss .orb { width: 72px; height: 72px; background: radial-gradient(circle at 38% 32%, #fff, var(--a) 50%, #3a1060 95%); color: #1a0830; }
 .node.closed .orb { background: rgba(255, 255, 255, .08); box-shadow: none; color: #fff; font-size: 18px; }
 .node.current .orb { animation: nodePulse 1.4s ease-in-out infinite; }
-@keyframes nodePulse { 50% { box-shadow: 0 0 40px 8px rgba(255, 200, 100, .8), inset 0 -4px 8px rgba(160, 60, 10, .4); transform: scale(1.08); } }
+@keyframes nodePulse { 50% { transform: scale(1.1); } }
 .node .stars { display: flex; gap: 2px; margin-top: 4px; }
 .node .stars i { color: rgba(255, 255, 255, .2); font-size: 15px; }
 .node .stars i.on { color: var(--gold); filter: drop-shadow(0 0 4px rgba(255, 200, 90, .9)); }
@@ -139,14 +139,14 @@ svg { width: 1em; height: 1em; fill: currentColor; stroke: currentColor; stroke-
 .hud { position: absolute; inset: 0; pointer-events: none; transition: opacity .5s; }
 .hud.gone { opacity: 0; }
 .hud-top { display: flex; align-items: center; gap: 10px; padding: calc(var(--st) + 12px) 70px 0 14px; }
-.hud-swarm { display: flex; align-items: center; gap: 6px; padding: 6px 14px 6px 10px; border-radius: 99px; background: rgba(10, 8, 30, .5);
+.hud-swarm { display: flex; align-items: center; gap: 6px; padding: 6px 14px 6px 10px; border-radius: 99px; background: rgba(10, 8, 30, .74);
   border: 1px solid rgba(255, 220, 140, .3); font-size: 20px; font-weight: 800; color: #fff6d6; text-shadow: 0 0 10px rgba(255, 200, 90, .8); min-width: 78px; }
 .hud-swarm svg { color: var(--gold); filter: drop-shadow(0 0 6px #ffb84a); stroke-width: 0; }
 .hud-swarm svg path { stroke: var(--gold); fill: none; }
 .hud-swarm.bump { animation: bump .25s ease; }
 @keyframes bump { 40% { transform: scale(1.15); } }
 .hud-swarm.danger { border-color: rgba(255, 80, 120, .7); animation: danger 0.8s ease-in-out infinite; }
-@keyframes danger { 50% { box-shadow: 0 0 18px rgba(255, 60, 100, .7); } }
+@keyframes danger { 50% { border-color: rgba(255, 60, 100, 1); } }
 .hud-mid { flex: 1; }
 .prog { position: relative; height: 8px; border-radius: 9px; background: rgba(255, 255, 255, .12); overflow: visible; }
 .prog i { position: absolute; inset: 0; border-radius: 9px; background: linear-gradient(90deg, #ffd36b, #8fffe0); transform-origin: left; transform: scaleX(0);
@@ -170,11 +170,11 @@ svg { width: 1em; height: 1em; fill: currentColor; stroke: currentColor; stroke-
 .flare-btn .bgc { stroke: rgba(255, 255, 255, .12); }
 .flare-btn .fg { stroke: #ffd36b; stroke-linecap: round; stroke-dasharray: 276.5; stroke-dashoffset: 276.5; filter: drop-shadow(0 0 4px #ffb84a); }
 .flare-btn span { position: relative; font-size: 34px; color: rgba(255, 255, 255, .35); }
-.flare-btn.ready { background: radial-gradient(circle at 40% 35%, #fffbe0, #ffcf6b 45%, #ff8a3c 90%); animation: ready 0.9s ease-in-out infinite; }
+.flare-btn.ready { background: radial-gradient(circle at 40% 35%, #fffbe0, #ffcf6b 45%, #ff8a3c 90%); box-shadow: 0 0 26px 6px rgba(255, 190, 80, .6); animation: ready 0.9s ease-in-out infinite; }
 .flare-btn.ready span { color: #5a2006; }
 .flare-btn.ready .fg { stroke: #fff; }
 .flare-btn.fired { transform: scale(.88); }
-@keyframes ready { 50% { box-shadow: 0 0 36px 10px rgba(255, 190, 80, .75); transform: scale(1.06); } }
+@keyframes ready { 50% { transform: scale(1.07); } }
 .hint-box { position: absolute; left: 14px; right: 116px; bottom: calc(var(--sb) + 26px); }
 .hint { display: flex; gap: 8px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; background: rgba(12, 10, 36, .78); border: 1px solid rgba(143, 255, 224, .35);
   font-size: 14.5px; line-height: 1.35; color: #e8fff8; box-shadow: 0 6px 24px rgba(0, 0, 0, .4); opacity: 0; transform: translateY(14px); transition: all .35s ease; }
@@ -261,7 +261,7 @@ svg { width: 1em; height: 1em; fill: currentColor; stroke: currentColor; stroke-
 .dialog.unlock { border-color: rgba(255, 220, 140, .6); }
 .ab-ic { width: 110px; height: 110px; margin: 16px auto 6px; border-radius: 50%; display: grid; place-items: center; font-size: 54px; color: #4a1a06;
   background: radial-gradient(circle at 40% 35%, #fffbe8, #ffcf6b 50%, #ff8a3c 90%); box-shadow: 0 0 50px 14px rgba(255, 190, 90, .55); animation: abPulse 1.6s ease-in-out infinite; }
-@keyframes abPulse { 50% { transform: scale(1.08); box-shadow: 0 0 80px 24px rgba(255, 190, 90, .7); } }
+@keyframes abPulse { 50% { transform: scale(1.08); } }
 .res-rows .wide { grid-column: 1 / -1; }
 
 /* ---------- EMMİ GAMES imzası (oyun içi; oynanış sırasında gösterilmez) ---------- */

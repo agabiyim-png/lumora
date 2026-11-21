@@ -35,7 +35,7 @@ jobs:
       - name: APK adını düzenle
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/release/app-release.apk out/Lumora-v2.1-build${{ github.run_number }}.apk
+          cp app/build/outputs/apk/release/app-release.apk out/Lumora-v2.2-build${{ github.run_number }}.apk
           ls -la out
 
       - name: Artifact olarak yükle

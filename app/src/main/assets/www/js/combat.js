@@ -65,9 +65,7 @@
       this._rebuildSky(true);
       this.bossCfg = this.level ? L.BOSSES[this.levelIndex] : null;
       if (this.bossCfg && this.level) this.bossCamY = this.endY + this.H * 0.42;
-      // daha çok ve renkli ateşböceği
-      for (let i = 0; i < 24; i++) this.motes.push(this._mote(true));
-      for (const m of this.motes) m.c = U.pick(zs[0].cols);
+      for (const m of this.motes) { m.c = U.pick(zs[0].cols); m.img = null; }
     },
 
     // ---------- bölgeler (yolculuk boyunca değişen renk ve bitki örtüsü) ----------
@@ -85,7 +83,7 @@
     _updateZones(dt) {
       if (this.demo) {
         if (this._dd == null) this._dd = this.cam.y + this.H;
-        while (this._dd > this.cam.y - 120) { this._spawnDecor(this._dd); this._dd -= U.rand(90, 150); }
+        while (this._dd > this.cam.y - 120) { this._spawnDecor(this._dd); this._dd -= U.rand(200, 320); }
         for (const e of this.ents) if (e.t === 'decor' && e.y > this.cam.y + this.H + 200) e.dead = true;
         if (this.ents.length > 40) this.ents = this.ents.filter((e) => !e.dead);
       }
@@ -98,10 +96,10 @@
         if (!first && !this.demo) {
           this.zoneMsg = { name: zs[zi].name, t: 0 };
           L.audio.zone && L.audio.zone();
-          for (const m of this.motes) m.c = U.pick(zs[zi].cols);
+          for (const m of this.motes) { m.c = U.pick(zs[zi].cols); m.img = null; }
         } else if (first) {
           this.zoneMsg = this.demo ? null : { name: zs[zi].name, t: -2.6 };
-          for (const m of this.motes) m.c = U.pick(zs[zi].cols);
+          for (const m of this.motes) { m.c = U.pick(zs[zi].cols); m.img = null; }
         }
       }
       // renkleri yumuşakça hedefe kaydır
@@ -116,25 +114,79 @@
         }
       }
       this.zoneT += dt;
-      if (changed && this.zoneT > 0.12) { this.zoneT = 0; this._rebuildSky(); }
+      if (changed && this.zoneT > 0.25) { this.zoneT = 0; this._rebuildSky(); }
       if (this.zoneMsg) { this.zoneMsg.t += dt; if (this.zoneMsg.t > 3.2) this.zoneMsg = null; }
     },
+    // Gökyüzü önbelleği: gradyan + yıldızlar + ay + diyara özgü sabit ışıklar tek tuvalde.
+    // Yalnızca bölge rengi değişirken (en fazla 4 kez/sn) yeniden çizilir; oyun karesinde tek drawImage.
     _rebuildSky() {
-      const g = this._skyCtx || (this._skyCtx = U.makeCanvas(4, 4).getContext('2d'));
-      const grd = g.createLinearGradient(0, 0, 0, this.H);
+      const W = this.W, H = this.H, B = this.B;
+      const cv = this.skyCanvas || (this.skyCanvas = U.makeCanvas(Math.ceil(W * 0.75), Math.ceil(H * 0.75)));
+      const g = cv.getContext('2d');
+      g.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+      const grd = g.createLinearGradient(0, 0, 0, H);
       const c = (a) => `rgb(${a[0] | 0},${a[1] | 0},${a[2] | 0})`;
       grd.addColorStop(0, c(this.zc.top));
       grd.addColorStop(1, c(this.zc.bot));
       this.skyGrad = grd;
+      g.globalCompositeOperation = 'source-over';
+      g.globalAlpha = 1;
+      g.fillStyle = grd;
+      g.fillRect(0, 0, W, H);
+      const L0 = this.bg && this.bg.layers[0];
+      if (L0) { g.globalAlpha = L0.alpha; g.drawImage(L0.canvas, 0, 0, W, H, 0, 0, W, H); g.globalAlpha = 1; }
+      g.globalCompositeOperation = 'lighter';
+      if (B.id === 'peak') {
+        const cols = ['#5fffc0', '#9a7bff', '#ff7ad8'];
+        for (let k = 0; k < 3; k++) {
+          const ag = g.createLinearGradient(0, 0, 0, H * 0.5);
+          ag.addColorStop(0, U.rgba(cols[k], 0)); ag.addColorStop(0.5, U.rgba(cols[k], 0.16)); ag.addColorStop(1, U.rgba(cols[k], 0));
+          g.fillStyle = ag;
+          g.beginPath();
+          const base = H * (0.12 + k * 0.08);
+          g.moveTo(0, base);
+          for (let x = 0; x <= W; x += W / 16) g.lineTo(x, base + Math.sin(x * 0.012 + k * 2) * 40 + Math.sin(x * 0.03) * 14);
+          for (let x = W; x >= 0; x -= W / 16) g.lineTo(x, base + 160 + Math.sin(x * 0.01 + k) * 50);
+          g.closePath(); g.fill();
+        }
+      } else if (B.id === 'garden') {
+        for (let i = 0; i < 4; i++) {
+          const x = W * (0.15 + i * 0.25);
+          const rg = g.createLinearGradient(x, 0, x - 120, H);
+          rg.addColorStop(0, U.rgba(B.accent, 0.14)); rg.addColorStop(1, U.rgba(B.accent, 0));
+          g.fillStyle = rg;
+          g.beginPath(); g.moveTo(x - 20, 0); g.lineTo(x + 30, 0); g.lineTo(x - 60, H); g.lineTo(x - 200, H); g.fill();
+        }
+      } else if (B.id === 'cave') {
+        g.globalAlpha = 0.22;
+        g.drawImage(Art.glow(B.accent, 256), -W * 0.3, H * 0.2, W * 0.9, W * 0.9);
+        g.drawImage(Art.glow(B.glow2, 256), W * 0.5, H * 0.5, W * 0.9, W * 0.9);
+        g.globalAlpha = 1;
+      }
+      // kenarlarda hafif vinyet (eskiden her karede ayrı tam ekran çizimdi)
+      g.globalCompositeOperation = 'source-over';
+      const vg = g.createRadialGradient(W / 2, H * 0.55, Math.min(W, H) * 0.35, W / 2, H * 0.55, Math.max(W, H) * 0.8);
+      vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,10,0.35)');
+      g.fillStyle = vg; g.fillRect(0, 0, W, H);
+      g.globalCompositeOperation = 'lighter';
+      if (this.moonSpr) {
+        g.drawImage(this.moonSpr, W * 0.72 - 130, H * 0.16 - 130, 260, 260);
+        g.globalAlpha = 0.3;
+        g.drawImage(Art.glow(B.rim, 256), W * 0.72 - 110, H * 0.16 - 110, 220, 220);
+        g.globalAlpha = 1;
+      }
+      g.globalCompositeOperation = 'source-over';
       this.fogHex = '#' + this.zc.fog.map((v) => (v | 0).toString(16).padStart(2, '0')).join('');
       this.topHex = '#' + this.zc.top.map((v) => (v | 0).toString(16).padStart(2, '0')).join('');
     },
 
     // ---------- iz ve ışık ----------
     _updateTrail(dt) {
-      const lumi = this.lumi;
-      this.trail.unshift({ x: lumi.x, y: lumi.y });
-      if (this.trail.length > 18) this.trail.pop();
+      // halka tampon: her karede yeni nesne oluşturulmaz
+      const lumi = this.lumi, tr = this.trail;
+      let p = tr.length >= 18 ? tr.pop() : { x: 0, y: 0 };
+      p.x = lumi.x; p.y = lumi.y;
+      tr.unshift(p);
     },
     _drawTrail(g) {
       const tr = this.trail;
@@ -522,10 +574,11 @@
       g.globalCompositeOperation = 'lighter';
       for (const e of this.ents) {
         if (e.t !== 'decor' || e.dead || e.y < top || e.y > bottom) continue;
-        const [lx, ly] = Art.decorLight(e);
+        if (e.lx == null) { const p = Art.decorLight(e); e.lx = p[0]; e.ly = p[1] - e.y; }
+        const lx = e.lx, ly = e.y + e.ly;
         const s = 120 * e.s * (0.85 + 0.15 * Math.sin(this.t * 2 + e.ph));
-        g.globalAlpha = 0.32;
-        g.drawImage(Art.glow(e.col, 128), lx - s / 2, ly - s / 2, s, s);
+        g.globalAlpha = 0.14;
+        g.drawImage(e.glowImg || (e.glowImg = Art.glow(e.col, 128)), lx - s / 2, ly - s / 2, s, s);
       }
       g.globalAlpha = 1;
       g.globalCompositeOperation = 'source-over';
@@ -609,8 +662,9 @@
       g.fillStyle = '#cfefff';
       g.fillText('✦  Y E N İ   B Ö L G E  ✦', this.W / 2, y - 26);
       g.font = '800 26px sans-serif';
-      g.shadowColor = this.fogHex;
-      g.shadowBlur = 18;
+      g.lineWidth = 5;
+      g.strokeStyle = 'rgba(6,10,30,0.6)';
+      g.strokeText(m.name, this.W / 2, y);
       g.fillStyle = '#fff8e0';
       g.fillText(m.name, this.W / 2, y);
       g.restore();

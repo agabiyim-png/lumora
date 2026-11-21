@@ -7,6 +7,32 @@
   const TAU = U.TAU;
   const cache = {};
 
+  // ---------- Toplanabilir kıvılcım: belirgin altın çekirdek + dört köşeli parıltı ----------
+  // Dekor ve ateşböceklerinden ayırt edilsin diye: dolu, parlak, beyaz kenarlı, altın renk.
+  Art.pickup = function (size) {
+    const key = 'pk' + size;
+    if (cache[key]) return cache[key];
+    const c = U.makeCanvas(size, size), g = c.getContext('2d'), r = size / 2;
+    g.globalCompositeOperation = 'lighter';
+    g.drawImage(Art.glow('#ffb81a', 128), 0, 0, size, size);
+    g.drawImage(Art.glow('#ffd23a', 128), size * 0.15, size * 0.15, size * 0.7, size * 0.7);
+    g.globalCompositeOperation = 'source-over';
+    // dört köşeli parıltı
+    g.fillStyle = '#ffe070';
+    g.beginPath();
+    const a = r * 0.8, b = r * 0.1;
+    g.moveTo(r, r - a); g.quadraticCurveTo(r + b, r - b, r + a, r); g.quadraticCurveTo(r + b, r + b, r, r + a); g.quadraticCurveTo(r - b, r + b, r - a, r); g.quadraticCurveTo(r - b, r - b, r, r - a);
+    g.fill();
+    // dolu altın çekirdek, beyaz kenar
+    const cg = g.createRadialGradient(r - r * 0.08, r - r * 0.1, 1, r, r, r * 0.32);
+    cg.addColorStop(0, '#ffffff'); cg.addColorStop(0.45, '#fff0a0'); cg.addColorStop(1, '#ffb21a');
+    g.fillStyle = cg;
+    g.beginPath(); g.arc(r, r, r * 0.3, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.95)'; g.lineWidth = Math.max(1, size * 0.035);
+    g.stroke();
+    return (cache[key] = c);
+  };
+
   // ---------- Parlayan flora (dekor) — bir kez çizilir, önbelleğe alınır ----------
   // Sol duvardan içeri doğru büyür; sağ taraf için çizimde yatay aynalanır.
   Art.decor = function (type, col, seed) {
@@ -137,13 +163,14 @@
     return (cache[key] = { canvas: c, ax, ay, lx, ly, lights });
   };
 
+  // Dekor: döndürme yok (dönüşlü çizim pahalı), sönük çizilir ki ödüllerle yarışmasın
   Art.drawDecor = function (g, d, t) {
     const sp = d.spr;
     g.save();
+    g.globalAlpha = 0.72;
     g.translate(d.x, d.y);
     if (d.side) g.scale(-1, 1);
     g.scale(d.s, d.s);
-    g.rotate(Math.sin(t * 0.9 + d.ph) * 0.035);
     g.drawImage(sp.canvas, -sp.ax, -sp.ay);
     g.restore();
   };

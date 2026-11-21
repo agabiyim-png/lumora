@@ -12,7 +12,7 @@
       fog: '#3d8c95', far: '#123341', mid: '#0a2230', near: '#06141d',
       rim: '#7fd8d0', accent: '#8fffe0', glow2: '#5fc8ff',
       leaf: '#0f3a3a', leafRim: '#4fb3a0',
-      dark: 0.3, shadow: '#140a26', shadowRim: '#9a5cff',
+      dark: 0.3, shadow: '#140a26', shadowRim: '#ff2e63',
       moon: true,
     },
     {
@@ -23,7 +23,7 @@
       fog: '#8a3fb0', far: '#2a1040', mid: '#1a0a2a', near: '#0d0516',
       rim: '#d78cff', accent: '#ff6fd8', glow2: '#5ff3ff',
       leaf: '#2a1240', leafRim: '#b76cff',
-      dark: 0.42, shadow: '#05010d', shadowRim: '#ff4f9a',
+      dark: 0.42, shadow: '#05010d', shadowRim: '#ff2e63',
       moon: false,
     },
     {
@@ -34,7 +34,7 @@
       fog: '#20b3a8', far: '#0a4048', mid: '#062c33', near: '#03191e',
       rim: '#7fffe0', accent: '#63ffb5', glow2: '#7ab8ff',
       leaf: '#0b3d36', leafRim: '#4fe0b0',
-      dark: 0.34, shadow: '#0a0820', shadowRim: '#6f7bff',
+      dark: 0.34, shadow: '#0a0820', shadowRim: '#ff2e63',
       moon: false,
     },
     {
@@ -45,7 +45,7 @@
       fog: '#6a7bd8', far: '#1f1d52', mid: '#141238', near: '#0a0920',
       rim: '#bcd8ff', accent: '#9ad8ff', glow2: '#ff9ad8',
       leaf: '#1b2550', leafRim: '#a8c4ff',
-      dark: 0.36, shadow: '#0b0418', shadowRim: '#ff5f7f',
+      dark: 0.36, shadow: '#0b0418', shadowRim: '#ff2e63',
       moon: true,
     },
   ];
@@ -82,24 +82,24 @@
   // Her diyarın içinde yolculuk boyunca değişen bölgeler (renk, sis, bitki örtüsü)
   L.ZONES = [
     [
-      { name: 'Ay Işığı Patikası', top: '#061433', bot: '#11475e', fog: '#3fc4c0', flora: ['flower', 'fern', 'mush'], cols: ['#8fffe0', '#5fc8ff', '#ffd36b'] },
-      { name: 'Zümrüt Açıklık', top: '#03170f', bot: '#0f5a3a', fog: '#43e08f', flora: ['mush', 'flower', 'fern'], cols: ['#7dffb0', '#c6ff6b', '#ff9fd8'] },
-      { name: 'Ateşböceği Çayırı', top: '#170c2a', bot: '#5a2f4a', fog: '#ffb36b', flora: ['flower', 'mush', 'crystal'], cols: ['#ffd36b', '#ff9fd8', '#b78cff'] },
+      { name: 'Ay Işığı Patikası', top: '#0a1d52', bot: '#0e7a8a', fog: '#3fe0d0', flora: ['flower', 'fern', 'mush'], cols: ['#8fffe0', '#5fc8ff', '#7affd8'] },
+      { name: 'Zümrüt Açıklık', top: '#062a22', bot: '#11905a', fog: '#43f09a', flora: ['mush', 'flower', 'fern'], cols: ['#7dffb0', '#7dffb0', '#ff9fd8'] },
+      { name: 'Ateşböceği Çayırı', top: '#24124a', bot: '#8a3a78', fog: '#ff9ad0', flora: ['flower', 'mush'], cols: ['#7affd8', '#ff9fd8', '#b78cff'] },
     ],
     [
-      { name: 'Kristal Kapı Yolu', top: '#0a0320', bot: '#2c0f50', fog: '#9a5cff', flora: ['crystal', 'mush'], cols: ['#b78cff', '#5ff3ff', '#ff6fd8'] },
-      { name: 'Pembe Mantar Korusu', top: '#1a0418', bot: '#4a0f42', fog: '#ff5fc8', flora: ['mush', 'crystal', 'flower'], cols: ['#ff6fd8', '#ffd36b', '#ff9fd8'] },
-      { name: 'Turkuaz Yeraltı Gölü', top: '#02121f', bot: '#0b3f5a', fog: '#3fe0ff', flora: ['crystal', 'mush'], cols: ['#5ff3ff', '#8fffe0', '#b78cff'] },
+      { name: 'Kristal Kapı Yolu', top: '#1a0848', bot: '#5a1a9a', fog: '#b06cff', flora: ['mush', 'fern'], cols: ['#b78cff', '#5ff3ff', '#ff6fd8'] },
+      { name: 'Pembe Mantar Korusu', top: '#2c0838', bot: '#8a1a7a', fog: '#ff5fd0', flora: ['mush', 'flower'], cols: ['#ff6fd8', '#7affd8', '#ff9fd8'] },
+      { name: 'Turkuaz Yeraltı Gölü', top: '#06204a', bot: '#0f6a8a', fog: '#3fe8ff', flora: ['mush', 'fern'], cols: ['#5ff3ff', '#8fffe0', '#b78cff'] },
     ],
     [
-      { name: 'Mercan Kapısı', top: '#021820', bot: '#06485a', fog: '#2fd0c0', flora: ['coral', 'flower'], cols: ['#63ffb5', '#ff8fb0', '#5fc8ff'] },
-      { name: 'Zümrüt Yosunlar', top: '#021a12', bot: '#0a5a3c', fog: '#4fff9a', flora: ['fern', 'coral', 'mush'], cols: ['#7dffb0', '#c6ff6b', '#8fffe0'] },
-      { name: 'İnci Sarayı', top: '#0c1030', bot: '#2a4a7a', fog: '#9ad8ff', flora: ['crystal', 'coral', 'flower'], cols: ['#e8f4ff', '#9ad8ff', '#ff9fd8'] },
+      { name: 'Mercan Kapısı', top: '#04304a', bot: '#0a8a8a', fog: '#2ff0d0', flora: ['coral', 'flower'], cols: ['#63ffb5', '#ff8fb0', '#5fc8ff'] },
+      { name: 'Zümrüt Yosunlar', top: '#03322a', bot: '#0f9a5e', fog: '#5fff9a', flora: ['fern', 'coral', 'mush'], cols: ['#7dffb0', '#7dffb0', '#8fffe0'] },
+      { name: 'İnci Sarayı', top: '#142060', bot: '#3a6ab0', fog: '#9ad8ff', flora: ['coral', 'flower'], cols: ['#e8f4ff', '#9ad8ff', '#ff9fd8'] },
     ],
     [
-      { name: 'Buz Patikası', top: '#050a26', bot: '#1d2f6a', fog: '#8ab8ff', flora: ['crystal', 'fern'], cols: ['#bfe2ff', '#8fffe0', '#9ad8ff'] },
-      { name: 'Aurora Sırtı', top: '#06081e', bot: '#173a4e', fog: '#5fffc0', flora: ['crystal', 'flower'], cols: ['#5fffc0', '#9a7bff', '#ff7ad8'] },
-      { name: 'Yıldız Tahtı', top: '#140a2c', bot: '#4a2a5a', fog: '#ffd36b', flora: ['crystal', 'flower', 'mush'], cols: ['#ffd36b', '#ff9fd8', '#fff3c4'] },
+      { name: 'Buz Patikası', top: '#0a1450', bot: '#2a50b0', fog: '#8ab8ff', flora: ['fern', 'flower'], cols: ['#bfe2ff', '#8fffe0', '#9ad8ff'] },
+      { name: 'Aurora Sırtı', top: '#081a40', bot: '#1a6a7a', fog: '#5fffc0', flora: ['flower', 'fern'], cols: ['#5fffc0', '#9a7bff', '#ff7ad8'] },
+      { name: 'Yıldız Tahtı', top: '#241046', bot: '#6a3a8a', fog: '#ff9ad8', flora: ['flower', 'mush'], cols: ['#7affd8', '#ff9fd8', '#b78cff'] },
     ],
   ];
 

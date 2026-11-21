@@ -319,7 +319,8 @@
       const r = this.rnd, W = this.W;
       const zi = this.game.zoneAt ? this.game.zoneAt(y0) : 0;
       const zs = L.ZONES[this.game.biome][zi];
-      const n = 1 + (h > 200 ? 2 : 1);
+      // sade yol: bölüm başına en fazla bir bitki, çoğu bölümde hiç
+      const n = r() < 0.55 ? 1 : 0;
       for (let i = 0; i < n; i++) {
         const side = r() < 0.5 ? 0 : 1;
         const type = zs.flora[r.int(0, zs.flora.length - 1)];

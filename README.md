@@ -6,6 +6,23 @@ Gece, Lumora vadisini yuttu ve dev Ay Ağaçları söndü. Sen **Lumi**'sin: son
 
 **Tek parmakla oynanır:** ekranın herhangi bir yerinde sürükle, Lumi parmağını takip eder.
 
+## v2.2 — Performans ve görsel netlik
+
+- **Takılmanın nedeni:** Telefonlarda tuval, cihaz piksel oranının tamamıyla (2,75–3x) çiziliyordu. Bu da karede 2,5 milyon pikselden fazla demek. Üstüne her karede yaklaşık 15 tam ekran boyama yapılıyordu: gökyüzü, 4 arka plan katmanı, sis, karanlık maskesi, vinyet ve büyük ışık haleleri. Arayüz düğmelerindeki `backdrop-filter` bulanıklığı da her karede yeniden hesaplanıyordu.
+- **Düzeltmeler:**
+  - Çizim çözünürlüğü en fazla 1,5x yapıldı. Cihaz yavaşsa 1,25x'e, gerekirse 1,0x'e kendiliğinden iner.
+  - Gökyüzü tek bir önbellek tuvaline taşındı.
+  - Arka plan katmanları artık yalnızca içerik olan sütunlarda çiziliyor.
+  - Tam ekran karanlık maskesi ve vinyet kaldırıldı; karartma katmanlar kurulurken bir kez uygulanıyor.
+  - Bulanıklık efektleri, gölge animasyonları ve zorunlu yeniden yerleşim (reflow) kaldırıldı.
+  - Parçacık havuzu kuruldu ve sprite önbellek anahtarları sayısal yapıldı.
+- **Açılış:** Ağır kurulum animasyon başlamadan yapılıyor; oyun döngüsü logo kaybolmaya başlarken çalışıyor. Animasyon saati gerçek zamanla ilerliyor ama karede en fazla 50 ms sayıyor; bu sayede hiçbir aşama atlanmıyor. Ses görsel anlara bağlandı.
+- **Görsel:**
+  - Yol kenarındaki kristaller kaldırıldı ve dekor azaltıldı.
+  - Altın rengi yalnızca toplanabilirlere ayrıldı, tehlikeler tek bir kırmızı-pembe renkte.
+  - Yukarıdan gelen tehlikeler için uyarı oku eklendi.
+  - Bölge renkleri daha doygun hâle getirildi.
+
 ## v2.0 — Büyülü dünya, savaş ve boss'lar
 
 - **Daha canlı dünya:** Her diyarda yolculuk boyunca değişen 3 bölge (ör. Ay Işığı Patikası → Zümrüt Açıklık → Ateşböceği Çayırı), parlayan mantarlar, çan çiçekleri, kristaller, eğrelti otları, mercanlar, renkli ateşböcekleri, Lumi'nin ışık izi ve rengârenk sürü.

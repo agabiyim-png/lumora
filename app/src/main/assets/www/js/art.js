@@ -6,12 +6,18 @@
   const TAU = U.TAU;
 
   const cache = {};
+  const gcache = Object.create(null);
+  const scache = Object.create(null);
 
   const Art = {
     // ---------- Işık sprite'ları ----------
+    // Önbellek anahtarı sayısal: her çağrıda yeni metin (string) üretilmez → çöp toplayıcı yükü azalır.
     glow(color, size, core) {
-      const key = 'g' + color + size + (core || 0);
-      if (cache[key]) return cache[key];
+      const m = gcache[color] || (gcache[color] = Object.create(null));
+      const k = size * 1000 + ((core || 0) * 1000 | 0);
+      const hit = m[k];
+      if (hit) return hit;
+      const key = k;
       const c = U.makeCanvas(size, size);
       const g = c.getContext('2d');
       const r = size / 2;
@@ -28,7 +34,7 @@
       grd.addColorStop(1, U.rgba(color, 0));
       g.fillStyle = grd;
       g.fillRect(0, 0, size, size);
-      return (cache[key] = c);
+      return (m[key] = c);
     },
     // Işık maskesi için yumuşak beyaz disk
     softDisc(size) {
@@ -63,8 +69,9 @@
     },
     // Küçük kıvılcım sprite'ı (sürü için, çok sayıda çizilir)
     spark(color, size) {
-      const key = 'sp' + color + size;
-      if (cache[key]) return cache[key];
+      const m = scache[color] || (scache[color] = Object.create(null));
+      if (m[size]) return m[size];
+      const key = size;
       const c = U.makeCanvas(size, size);
       const g = c.getContext('2d');
       const r = size / 2;
@@ -84,7 +91,7 @@
       g.moveTo(r, r - r * 0.7); g.lineTo(r, r + r * 0.7);
       g.moveTo(r - r * 0.7, r); g.lineTo(r + r * 0.7, r);
       g.stroke();
-      return (cache[key] = c);
+      return (m[key] = c);
     },
 
     // ---------- Lumi (oyuncu) ----------
@@ -890,8 +897,8 @@
               gm.quadraticCurveTo(x0 + dir * len * 0.5, yy - len * 0.35 - W * 0.009, x0 + dir * len, yy - len * 0.2 - W * 0.009);
               gm.stroke();
               leafCluster(gm, x0 + dir * len, yy - len * 0.22, W * 0.07, b.leaf, b.leafRim, 0.95);
-              // asılı mavi çan çiçekleri
-              for (let f = 0; f < 3; f++) {
+              // asılı çan çiçeği (tek, sönük: kıvılcımlarla karışmasın)
+              for (let f = 0; f < 1; f++) {
                 const fx = x0 + dir * len * (0.4 + f * 0.2), fy = yy - len * 0.25 + W * 0.04 + f * 6;
                 gm.strokeStyle = U.rgba(b.leafRim, 0.4);
                 gm.lineWidth = 1;
@@ -951,7 +958,7 @@
           const cx = side ? W * 1.0 : 0;
           const pts = trunk(gm, cx, W * 0.3, b.mid, b.rim, W * 0.05, side ? -1 : 1);
           // mantar kümeleri
-          for (let k = 0; k < 8; k++) {
+          for (let k = 0; k < 4; k++) {
             const y = rnd() * TH;
             const x0 = ptsX(pts, y) + (side ? -W * 0.15 : W * 0.15);
             const col = rnd() < 0.5 ? b.accent : b.glow2;
@@ -988,8 +995,8 @@
               }
             }, y);
           }
-          // kristaller (yakın)
-          for (let k = 0; k < 7; k++) {
+          // kristaller (yakın) — kaldırıldı: ödüllere benzeyip dikkat dağıtıyordu
+          for (let k = 0; k < 0; k++) {
             const y = rnd() * TH, x0 = side ? W - rnd() * W * 0.08 : rnd() * W * 0.08;
             const col = rnd() < 0.5 ? b.glow2 : b.accent;
             wrap((yy) => {
@@ -1050,7 +1057,7 @@
           }
         }
         // mercanlar ve kabuklar
-        for (let k = 0; k < 10; k++) {
+        for (let k = 0; k < 5; k++) {
           const side = k % 2, y = rnd() * TH, x0 = side ? W - rnd() * W * 0.1 : rnd() * W * 0.1;
           const col = rnd() < 0.5 ? b.accent : '#ff8fb0';
           wrap((yy) => {
@@ -1104,10 +1111,51 @@
           }, y);
         }
       }
-      layers.push({ canvas: far, f: 0.18, alpha: 0.6 });
-      layers.push({ canvas: mid, f: 0.45, alpha: 1 });
+      layers.push({ canvas: far, f: 0.18, alpha: 0.55 });
+      layers.push({ canvas: mid, f: 0.45, alpha: 0.92 });
       layers.push({ canvas: near, f: 0.85, alpha: 1 });
+      // Arka planı oynanıştan geri planda tut: içerik olan piksellere gökyüzü renginde hafif perde.
+      [[far, 0.38], [mid, 0.26], [near, 0.34]].forEach(([cv, a]) => {
+        const g = cv.getContext('2d');
+        g.globalCompositeOperation = 'source-atop';
+        g.fillStyle = U.rgba(b.skyTop, a);
+        g.fillRect(0, 0, cv.width, cv.height);
+        g.globalCompositeOperation = 'source-over';
+      });
+      // Her katmanda içerik olan sütun aralıklarını bir kez bul: çizimde boş alanlar boyanmaz.
+      for (let i = 1; i < layers.length; i++) layers[i].spans = Art.columnSpans(layers[i].canvas);
       return { layers, TH };
+    },
+
+    // Açılış sırasında sık kullanılan sprite'ları önceden oluştur (ilk oyun karelerinde takılma olmasın)
+    prewarm() {
+      const cols = ['#ffd36b', '#8fffe0', '#ff9fd8', '#ffffff', '#ffe08a', '#7ab8ff', '#ff7ad1', '#8fffd0', '#a8b8ff', '#ffa63c', '#ffcf6b'];
+      for (const c of cols) { Art.glow(c, 64, 0.2); Art.glow(c, 128); Art.glow(c, 64); Art.spark(c, 48); Art.glow(c, 32, 0.25); }
+      for (const b of L.BIOMES) { Art.glow(b.shadowRim, 128); Art.glow(b.shadowRim, 64, 0.25); Art.smoke(b.shadow, b.shadowRim, 128); Art.glow(b.accent, 128); }
+      Art.softDisc(64);
+    },
+
+    // Saydam olmayan piksel içeren sütun aralıkları [x0, x1, x0, x1, ...]
+    columnSpans(c) {
+      const w = c.width, h = c.height;
+      let data;
+      try { data = c.getContext('2d').getImageData(0, 0, w, h).data; } catch (e) { return null; }
+      const used = new Uint8Array(w);
+      for (let y = 0; y < h; y += 2) {
+        let o = y * w * 4 + 3;
+        for (let x = 0; x < w; x++, o += 4) if (!used[x] && data[o] > 6) used[x] = 1;
+      }
+      const spans = [];
+      let x = 0;
+      while (x < w) {
+        while (x < w && !used[x]) x++;
+        if (x >= w) break;
+        const x0 = x;
+        let gap = 0, x1 = x;
+        while (x < w && gap < 12) { if (used[x]) { x1 = x; gap = 0; } else gap++; x++; }
+        spans.push(Math.max(0, x0 - 2), Math.min(w, x1 + 3));
+      }
+      return spans;
     },
 
     // Önbelleği temizle (biyom değişince)

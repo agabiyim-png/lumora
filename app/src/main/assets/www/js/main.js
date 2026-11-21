@@ -5,14 +5,20 @@
   const U = L.U;
 
   const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d', { alpha: false });
-  let W = 0, H = 0, dpr = 1, quality = 1;
+  let ctx = null;
+  try { ctx = canvas.getContext('2d', { alpha: false, desynchronized: true }); } catch (e) { ctx = null; }
+  if (!ctx) ctx = canvas.getContext('2d', { alpha: false });
+  let W = 0, H = 0, dpr = 1;
+  // Çizim çözünürlüğü kademeleri. Telefonlarda 2,75-3x piksel oranında tuval 2,5+ milyon piksel olur;
+  // her karede bunun defalarca boyanması takılmanın ana nedeniydi. Parlak ve yumuşak sanat tarzı
+  // 1,5x'te neredeyse aynı görünür ama ~3 kat daha az piksel boyanır.
+  const DPR_STEPS = [1.5, 1.25, 1.0];
+  L.fx = { level: 0 };
 
   function resize() {
     W = window.innerWidth;
     H = window.innerHeight;
-    dpr = Math.min(window.devicePixelRatio || 1, 2) * quality;
-    dpr = Math.max(1, dpr);
+    dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, DPR_STEPS[L.fx.level]));
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
     canvas.style.width = W + 'px';
@@ -131,19 +137,26 @@
 
   // ---------- ana döngü ----------
   let last = performance.now();
-  let slowFrames = 0, fastFrames = 0, hudT = 0;
+  let hudT = 0, perfSum = 0, perfN = 0, slowWin = 0;
   function frame(now) {
     requestAnimationFrame(frame);
     let dt = (now - last) / 1000;
     last = now;
     if (dt > 0.1) dt = 0.1;
 
-    // uyarlanabilir kalite: yavaş cihazlarda çözünürlüğü düşür
-    if (dt > 0.024) slowFrames++; else { slowFrames = Math.max(0, slowFrames - 0.5); fastFrames++; }
-    if (slowFrames > 90 && quality > 0.6) {
-      quality -= 0.15;
-      slowFrames = 0;
-      resize();
+    // Uyarlanabilir kalite: 60 karelik pencerede ortalama kare süresi 21 ms'yi (≈48 FPS) iki pencere
+    // üst üste aşarsa çözünürlük ve efekt yoğunluğu bir kademe düşer. Arka plana geçiş gibi
+    // tek seferlik uzun kareler (>250 ms) ölçüme katılmaz.
+    if (dt < 0.25 && (L.game || L.demo)) { perfSum += dt; perfN++; }
+    if (perfN >= 60) {
+      const avg = perfSum / perfN;
+      perfSum = 0; perfN = 0;
+      slowWin = avg > 0.021 ? slowWin + 1 : 0;
+      if (slowWin >= 2 && L.fx.level < DPR_STEPS.length - 1) {
+        L.fx.level++;
+        slowWin = 0;
+        resize();
+      }
     }
 
     const game = L.game || L.demo;
@@ -157,7 +170,7 @@
     game.render(ctx);
     if (L.game) {
       hudT += dt;
-      if (hudT > 0.05) { hudT = 0; L.ui.updateHud(L.game); }
+      if (hudT > 0.1) { hudT = 0; L.ui.updateHud(L.game); }
     }
   }
 
@@ -165,13 +178,27 @@
     resize();
     L.save.load();
     L.ui.init();
-    flow.menuScene();
-    L.ui.title();
-    requestAnimationFrame((t) => { last = t; frame(t); });
-    // EMMİ GAMES açılışı: oyun bu sırada arka planda kurulur, animasyon bitince menü kendiliğinden görünür
+    // Ağır kurulum (arka plan katmanlarının çizimi, menü, sprite'lar) açılış animasyonu BAŞLAMADAN,
+    // perde ekrandayken yapılır. Oyun döngüsü ancak logo kaybolmaya başlarken çalışır; böylece
+    // animasyon boyunca ana iş parçacığı yalnızca logoya ayrılır.
+    let looping = false;
+    const prepare = () => {
+      flow.menuScene();
+      L.ui.title();
+      // ilk kareyi görünmez biçimde bir kez çiz: dokular GPU'ya yüklensin, sprite'lar oluşsun
+      if (L.demo) { L.demo.update(1 / 60); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); L.demo.render(ctx); }
+      if (L.Art.prewarm) L.Art.prewarm();
+    };
+    const startLoop = () => {
+      if (looping) return;
+      looping = true;
+      requestAnimationFrame((t) => { last = t; frame(t); });
+    };
+    let splashOk = false;
     if (window.EmmiSplash) {
-      try { window.EmmiSplash.play({ sound: L.save.data.settings.sfx }); } catch (e) { /* açılış olmadan devam */ }
+      try { window.EmmiSplash.play({ sound: L.save.data.settings.sfx, prepare, onReveal: startLoop }); splashOk = true; } catch (e) { splashOk = false; }
     }
+    if (!splashOk) { prepare(); startLoop(); }
     // menüde müzik ilk dokunuşla başlar
     document.addEventListener('pointerdown', () => { if (!L.audio.music) L.audio.startMusic(L.demo ? L.demo.biome : 0); }, { once: true });
   }

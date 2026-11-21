@@ -25,6 +25,7 @@
       this.state = 'play';
       this.ents = [];
       this.parts = [];
+      this._pool = [];
       this.texts = [];
       this.swarm = [];
       this.cam = { y: 0, shake: 0, sx: 0, sy: 0 };
@@ -58,10 +59,7 @@
       this.baseSpeed = speedBase + (this.level ? this.level.diff * 46 : 10);
 
       this.buildBiome(this.biome);
-      this.mask = U.makeCanvas(Math.ceil(this.W / 3), Math.ceil(this.H / 3));
-      this.mg = this.mask.getContext('2d');
-      this._buildVignette();
-      for (let i = 0; i < 46; i++) this.motes.push(this._mote(true));
+      for (let i = 0; i < 22; i++) this.motes.push(this._mote(true));
 
       if (!this.demo) {
         const seed = this.endless ? (Date.now() & 0xffff) : 1000 + this.levelIndex * 7919;
@@ -97,6 +95,7 @@
       grd.addColorStop(1, this.B.skyBot);
       this.skyGrad = grd;
       this.moonSpr = this.B.moon ? this._buildMoon() : null;
+      if (this.zc) { this.zoneIdx = -2; this._rebuildSky(); }
       L.audio.setMood(bi);
     }
 
@@ -125,18 +124,19 @@
     }
 
     _buildVignette() {
-      const c = U.makeCanvas(this.W, this.H);
+      const c = U.makeCanvas(Math.ceil(this.W / 3), Math.ceil(this.H / 3));
       const g = c.getContext('2d');
       const grd = g.createRadialGradient(this.W / 2, this.H * 0.55, Math.min(this.W, this.H) * 0.35, this.W / 2, this.H * 0.55, Math.max(this.W, this.H) * 0.78);
       grd.addColorStop(0, 'rgba(0,0,0,0)');
-      grd.addColorStop(1, 'rgba(0,0,0,0.62)');
+      grd.addColorStop(1, 'rgba(0,0,0,0.42)');
+      g.setTransform(c.width / this.W, 0, 0, c.height / this.H, 0, 0);
       g.fillStyle = grd;
       g.fillRect(0, 0, this.W, this.H);
       this.vignette = c;
     }
 
     _mote(init) {
-      return { x: Math.random() * this.W, y: init ? Math.random() * this.H : this.H + 10, vx: U.rand(-8, 8), vy: U.rand(-18, -6), s: U.rand(3, 9), a: U.rand(0.2, 0.7), ph: Math.random() * 6 };
+      return { x: Math.random() * this.W, y: init ? Math.random() * this.H : this.H + 10, vx: U.rand(-8, 8), vy: U.rand(-18, -6), s: U.rand(3, 7), a: U.rand(0.15, 0.45), ph: Math.random() * 6 };
     }
 
     addEnt(e) {
@@ -197,8 +197,12 @@
 
     // ---------- parçacık ve yazı ----------
     part(x, y, vx, vy, life, size, col, type, drag) {
-      if (this.parts.length > 520) return;
-      this.parts.push({ x, y, vx, vy, life, max: life, size, col, type: type || 'glow', drag: drag || 2 });
+      if (this.parts.length > (L.fx && L.fx.level >= 2 ? 160 : 300)) return;
+      const p = this._pool && this._pool.length ? this._pool.pop() : {};
+      p.x = x; p.y = y; p.vx = vx; p.vy = vy; p.life = life; p.max = life; p.size = size; p.col = col;
+      p.type = type || 'glow'; p.drag = drag || 2; p.rim = null; p.rot = 0; p.vr = 0;
+      p.img = p.type === 'glow' ? Art.glow(col, 64, 0.2) : null;
+      this.parts.push(p);
     }
     burst(x, y, n, col, speed, size, life) {
       for (let i = 0; i < n; i++) {
@@ -713,8 +717,10 @@
         }
       }
       // temizlik
-      if (this.ents.length > 60) this.ents = this.ents.filter((e) => !e.dead);
-      else for (let i = this.ents.length - 1; i >= 0; i--) if (this.ents[i].dead) this.ents.splice(i, 1);
+      let w = 0;
+      const arr = this.ents;
+      for (let i = 0; i < arr.length; i++) { const e = arr[i]; if (!e.dead) arr[w++] = e; }
+      arr.length = w;
     }
 
     _hazardTouch(e, r, dt) {
@@ -830,7 +836,12 @@
       for (let i = this.parts.length - 1; i >= 0; i--) {
         const p = this.parts[i];
         p.life -= dt;
-        if (p.life <= 0) { this.parts[i] = this.parts[this.parts.length - 1]; this.parts.pop(); continue; }
+        if (p.life <= 0) {
+          this.parts[i] = this.parts[this.parts.length - 1];
+          this.parts.pop();
+          if (this._pool.length < 400) this._pool.push(p);
+          continue;
+        }
         const d = Math.exp(-p.drag * dt);
         p.vx *= d; p.vy *= d;
         p.x += p.vx * dt; p.y += p.vy * dt;
@@ -983,23 +994,12 @@
       g.save();
       g.translate(ox, oy);
 
-      // gökyüzü
-      g.fillStyle = this.skyGrad;
-      g.fillRect(-20, -20, W + 40, H + 40);
-      const L0 = this.bg.layers[0];
-      this._drawLayer(g, L0);
-      if (this.moonSpr) {
-        const my = H * 0.16;
-        g.globalCompositeOperation = 'lighter';
-        g.drawImage(this.moonSpr, W * 0.72 - 130, my - 130, 260, 260);
-        g.globalCompositeOperation = 'source-over';
-      }
-      if (B.id === 'peak') this._drawAurora(g);
-      if (B.id === 'garden') this._drawRays(g);
-      if (B.id === 'cave') this._drawCaveGlow(g);
+      // gökyüzü: gradyan, yıldızlar, ay ve diyar ışıkları tek bir önbellek tuvalinde (1 çizim)
+      if (this.skyCanvas) g.drawImage(this.skyCanvas, -20, -20, W + 40, H + 40);
+      else { g.fillStyle = this.skyGrad; g.fillRect(-20, -20, W + 40, H + 40); }
 
-      // uzak ve orta katman + sis
-      this._drawLayer(g, this.bg.layers[1]);
+      // uzak ve orta katman + sis (uzak katman en düşük kalite kademesinde atlanır)
+      if (!(L.fx && L.fx.level >= 2)) this._drawLayer(g, this.bg.layers[1]);
       this._drawFog(g);
       this._drawLayer(g, this.bg.layers[2]);
 
@@ -1030,25 +1030,15 @@
       this._drawParts(g);
       g.restore();
 
-      // ışık tonu (ek)
       g.globalCompositeOperation = 'lighter';
-      if (this.moonSpr) {
-        g.globalAlpha = 0.3;
-        g.drawImage(Art.glow(B.rim, 256), W * 0.72 - 110, H * 0.16 - 110, 220, 220);
-        g.globalAlpha = 1;
-      }
-      const ly = this.lumi.y - this.cam.y;
-      const lr = 220 + Math.sqrt(this.swarm.length) * 18;
-      g.globalAlpha = 0.16 * this.lumi.alpha;
-      g.drawImage(Art.glow(this.skin.mid, 256), this.lumi.x - lr, ly - lr, lr * 2, lr * 2);
-      g.globalAlpha = 1;
-      // havada uçuşan toz zerreleri
-      for (const m of this.motes) {
-        // ateşböceği gibi yanıp sönen renkli zerreler
+      // havada uçuşan ateşböcekleri (az sayıda, sprite önceden atanmış)
+      const mN = L.fx && L.fx.level >= 2 ? 10 : this.motes.length;
+      for (let i = 0; i < mN; i++) {
+        const m = this.motes[i];
         const bl = Math.max(0, Math.sin(m.ph * 1.7));
         g.globalAlpha = m.a * (0.25 + 0.75 * bl);
         const sz = m.s * (1 + bl * 0.8);
-        g.drawImage(Art.glow(m.c || B.accent, 32, 0.25), m.x - sz / 2, m.y - sz / 2, sz, sz);
+        g.drawImage(m.img || (m.img = Art.glow(m.c || B.accent, 32, 0.25)), m.x - sz / 2, m.y - sz / 2, sz, sz);
       }
       if (this.secretT > 0) {
         g.globalAlpha = Math.min(1, this.secretT) * 0.18;
@@ -1061,7 +1051,6 @@
       g.globalCompositeOperation = 'source-over';
 
       if (this.chase) this._drawChase(g);
-      g.drawImage(this.vignette, 0, 0);
       if (this.flash > 0) {
         g.globalAlpha = Math.min(1, this.flash) * (this.flashCol === '#000000' ? 0.7 : 0.35);
         g.fillStyle = this.flashCol;
@@ -1078,25 +1067,38 @@
       g.restore();
     }
 
+    // Katmanlar yalnızca içerik olan sütun aralıkları (spans) ve ekranda görünen satırlarla çizilir.
+    // Eskiden her katman tam ekran (bazen iki kez) boyanıyordu; ön plan katmanının ~%60'ı boştu.
     _drawLayer(g, layer) {
-      const TH = this.bg.TH;
+      const TH = this.bg.TH, H = this.H;
       let off = (-this.cam.y * layer.f) % TH;
       if (off < 0) off += TH;
       g.globalAlpha = layer.alpha;
-      g.drawImage(layer.canvas, 0, off - TH);
-      if (off < this.H) g.drawImage(layer.canvas, 0, off);
+      const spans = layer.spans;
+      for (let k = 0; k < 2; k++) {
+        const dy = k === 0 ? off - TH : off;
+        const y0 = Math.max(0, dy), y1 = Math.min(H, dy + TH);
+        if (y1 <= y0) continue;
+        const sy = y0 - dy, sh = y1 - y0;
+        if (!spans) { g.drawImage(layer.canvas, 0, sy, layer.canvas.width, sh, 0, y0, layer.canvas.width, sh); continue; }
+        for (let i = 0; i < spans.length; i += 2) {
+          const x0 = spans[i], w = spans[i + 1] - x0;
+          g.drawImage(layer.canvas, x0, sy, w, sh, x0, y0, w, sh);
+        }
+      }
       g.globalAlpha = 1;
     }
 
     _drawFog(g) {
       const B = this.B, W = this.W, H = this.H;
       g.globalCompositeOperation = 'lighter';
+      if (L.fx && L.fx.level >= 2) { g.globalCompositeOperation = 'source-over'; return; }
       const fog = Art.glow(this.fogHex || B.fog, 256);
-      for (let i = 0; i < 5; i++) {
-        const y = ((i * 211 - this.cam.y * 0.3) % (H + 300) + H + 300) % (H + 300) - 150;
-        const x = W * 0.5 + Math.sin(this.t * 0.1 + i * 2) * W * 0.4;
-        g.globalAlpha = 0.12;
-        g.drawImage(fog, x - W * 0.7, y - 120, W * 1.4, 240);
+      for (let i = 0; i < 2; i++) {
+        const y = ((i * 431 - this.cam.y * 0.3) % (H + 300) + H + 300) % (H + 300) - 150;
+        const x = W * 0.5 + Math.sin(this.t * 0.1 + i * 2) * W * 0.3;
+        g.globalAlpha = 0.07;
+        g.drawImage(fog, x - W * 0.6, y - 90, W * 1.2, 180);
       }
       g.globalAlpha = 1;
       g.globalCompositeOperation = 'source-over';
@@ -1184,8 +1186,9 @@
 
     _drawEnts(g, hazards) {
       const B = this.B, t = this.t;
+      if (hazards && this.state === 'play') this._drawWarnings(g);
       const top = this.cam.y - 120, bottom = this.cam.y + this.H + 120;
-      const sparkImg = Art.spark(this.skin.mid, 48);
+      const pickImg = Art.pickup(48);
       for (const e of this.ents) {
         if (e.dead) continue;
         if (!!HAZ_LAYER[e.t] !== !!hazards) continue;
@@ -1198,12 +1201,11 @@
         if (e.y < top || e.y > bottom) continue;
         switch (e.t) {
           case 'spark': {
-            const s = 30 + Math.sin(t * 5 + e.ph) * 5;
-            g.globalCompositeOperation = 'lighter';
+            // toplanabilir kıvılcım: dolu altın çekirdek + parıltı, hafif nabız
+            const s = 34 + Math.sin(t * 5 + e.ph) * 4;
             if (e.scatter != null) g.globalAlpha = Math.min(1, e.scatter) * (e.grace > 0 ? 0.6 : 1);
-            g.drawImage(sparkImg, e.x - s / 2, e.y - s / 2 + (e.fly == null && e.scatter == null ? Math.sin(t * 2 + e.ph) * 3 : 0), s, s);
+            g.drawImage(pickImg, e.x - s / 2, e.y - s / 2 + (e.fly == null && e.scatter == null ? Math.sin(t * 2 + e.ph) * 3 : 0), s, s);
             g.globalAlpha = 1;
-            g.globalCompositeOperation = 'source-over';
             break;
           }
           case 'amber': Art.drawAmber(g, e.x, e.y, e.r, t + e.x); break;
@@ -1230,9 +1232,9 @@
               g.fillStyle = U.rgba('#ff3355', a);
               const wx = e.x + e.vx * 0.25;
               g.beginPath();
-              g.moveTo(wx, this.cam.y + 14);
-              g.lineTo(wx - 10, this.cam.y + 32);
-              g.lineTo(wx + 10, this.cam.y + 32);
+              g.moveTo(wx, this.cam.y + 70);
+              g.lineTo(wx - 11, this.cam.y + 88);
+              g.lineTo(wx + 11, this.cam.y + 88);
               g.fill();
             } else if (e.crystal) {
               g.save();
@@ -1262,7 +1264,15 @@
             g.fillText(lbl, e.x, e.y + e.r * 1.25 + 22);
             break;
           }
-          case 'power': Art.drawPower(g, e.x, e.y, e.r, t, e.kind); break;
+          case 'power': {
+            // güçlendirme: büyük, parlak ve nabız gibi atan beyaz halka ile hemen fark edilir
+            const pr = e.r * (1.45 + 0.25 * Math.sin(t * 4 + e.x));
+            g.strokeStyle = 'rgba(255,255,255,0.7)';
+            g.lineWidth = 2.5;
+            g.beginPath(); g.arc(e.x, e.y + Math.sin(t * 3) * 3, pr, 0, TAU); g.stroke();
+            Art.drawPower(g, e.x, e.y, e.r * 1.12, t, e.kind);
+            break;
+          }
           case 'chest': Art.drawChest(g, e.x, e.y, t + e.x, e.opening == null ? 0 : Math.min(1, e.opening / 0.45), e.opening == null ? '#ffd36b' : ['#dff6ff', '#9ad0ff', '#ffd36b'][e.rar]); break;
           case 'crystal': Art.drawCrystalCluster(g, e, t, B); break;
           case 'portal': Art.drawPortal(g, e.x, e.y, e.r, t); break;
@@ -1277,7 +1287,7 @@
       g.globalCompositeOperation = 'lighter';
       const t = this.t;
       for (const f of this.swarm) {
-        const s = 21 + Math.sin(t * 6 + f.tw) * 6;
+        const s = 17 + Math.sin(t * 6 + f.tw) * 4;
         g.drawImage(imgs[f.c || 0], f.x - s / 2, f.y - s / 2, s, s);
       }
       g.globalCompositeOperation = 'source-over';
@@ -1285,6 +1295,9 @@
 
     _drawLumi(g) {
       const lumi = this.lumi;
+      g.globalAlpha = 0.4 * lumi.alpha;
+      g.drawImage(this._lumiShadow || (this._lumiShadow = Art.smoke('#020414', '#020414', 64)), lumi.x - 30, lumi.y - 26, 60, 60);
+      g.globalAlpha = 1;
       if (lumi.inv > 0 && Math.floor(lumi.inv * 14) % 2 === 0 && this.state === 'play') g.globalAlpha = 0.45;
       else g.globalAlpha = lumi.alpha;
       Art.drawLumi(g, lumi.x, lumi.y, this.t, { skin: this.skin, vx: lumi.vx, vy: lumi.vy, blink: lumi.blink, mood: lumi.mood, power: lumi.power, scale: 1.22 });
@@ -1298,6 +1311,26 @@
         g.stroke();
         g.setLineDash([]);
       }
+    }
+
+    // Yukarıdan yaklaşan tehlikeler için ekran üstünde kısa, kırmızı uyarı oku
+    _drawWarnings(g) {
+      const top = this.cam.y;
+      for (const e of this.ents) {
+        if (e.dead) continue;
+        const t = e.t;
+        if (t !== 'wisp' && t !== 'moth' && t !== 'wheel' && t !== 'jelly') continue;
+        const d = top - e.y;
+        if (d < 10 || d > 260) continue;
+        const a = (1 - d / 260) * (0.55 + 0.45 * Math.sin(this.t * 14));
+        g.globalAlpha = a;
+        g.fillStyle = '#ff2e63';
+        const x = U.clamp(e.x, 18, this.W - 18), y = top + 70;
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x - 11, y + 16); g.lineTo(x + 11, y + 16); g.closePath(); g.fill();
+        g.fillStyle = '#ffffff';
+        g.fillRect(x - 1.2, y + 5, 2.4, 6); g.fillRect(x - 1.2, y + 12.5, 2.4, 2.2);
+      }
+      g.globalAlpha = 1;
     }
 
     _hurtFx(g, e) {
@@ -1340,7 +1373,7 @@
         const k = p.life / p.max;
         g.globalAlpha = k;
         const s = p.size * (0.4 + k * 0.6);
-        g.drawImage(Art.glow(p.col, 64, 0.2), p.x - s / 2, p.y - s / 2, s, s);
+        g.drawImage(p.img || (p.img = Art.glow(p.col, 64, 0.2)), p.x - s / 2, p.y - s / 2, s, s);
       }
       g.globalCompositeOperation = 'source-over';
       for (const p of this.parts) {
@@ -1360,38 +1393,18 @@
       g.globalCompositeOperation = 'source-over';
     }
 
+    // Eski yöntem tam ekran bir karanlık maskesi çiziyordu (her karede ekranın tamamı bir kez daha
+    // boyanıyordu ve dünyayı gereksiz karartıyordu). Artık arka plan katmanları kurulurken hafifçe
+    // koyulaştırılıyor; burada yalnızca Lumi'nin çevresine küçük, ucuz bir ışık halesi eklenir.
     _drawMask(g) {
-      const mg = this.mg, m = this.mask, sc = m.width / this.W;
-      const dark = this.B.dark * (this.treeBloom ? 1 - this.treeBloom * 0.7 : 1);
-      mg.globalCompositeOperation = 'source-over';
-      mg.clearRect(0, 0, m.width, m.height);
-      mg.fillStyle = U.rgba(this.topHex || this.B.skyTop, dark);
-      mg.fillRect(0, 0, m.width, m.height);
-      mg.globalCompositeOperation = 'destination-out';
-      const disc = Art.softDisc(64);
-      const cy = this.cam.y;
-      const light = (x, y, r) => {
-        const s = r * 2 * sc;
-        mg.drawImage(disc, x * sc - s / 2, (y - cy) * sc - s / 2, s, s);
-      };
-      const lr = (150 + Math.sqrt(this.swarm.length) * 16) * this.lumi.alpha;
-      light(this.lumi.x, this.lumi.y + 10, lr);
-      light(this.lumi.x, this.lumi.y + 10, lr * 0.6);
-      for (const e of this.ents) {
-        if (e.dead || e.y < cy - 60 || e.y > cy + this.H + 60) continue;
-        if (e.t === 'spark') light(e.x, e.y, 46);
-        else if (e.t === 'power' || e.t === 'cocoon') light(e.x, e.y, 80);
-        else if (e.t === 'golden') light(e.x, e.y, 90);
-        else if (e.t === 'amber') light(e.x, e.y, 36);
-        else if (e.t === 'decor') { const p = Art.decorLight(e); light(p[0], p[1], 85 * e.s); }
-        else if (e.t === 'chest' || e.t === 'portal') light(e.x, e.y, 110);
-        else if (e.t === 'crystal') light(e.x, e.y, 95);
-      }
-      for (const s of this.shots) light(s.x, s.y, 50);
-      if (this.boss && this.state === 'boss') light(this.boss.x, this.boss.y, 150);
-      if (this.tree) for (const ln of this.tree.lanterns) if (ln.lit) light(ln.x, this.endY - this.tree.H + ln.y, 90);
-      if (this.flare.active) light(this.flare.x, this.flare.y, this.flare.r);
-      g.drawImage(m, 0, 0, this.W, this.H);
+      const lumi = this.lumi;
+      if (lumi.alpha <= 0) return;
+      const r = 120 + Math.min(80, Math.sqrt(this.swarm.length) * 7);
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = 0.13 * lumi.alpha;
+      g.drawImage(this._lumiHalo || (this._lumiHalo = Art.glow(this.skin.mid, 256)), lumi.x - r, lumi.y - this.cam.y - r + 8, r * 2, r * 2);
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = 'source-over';
     }
 
     _drawFlare(g) {
