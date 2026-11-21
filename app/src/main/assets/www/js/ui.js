@@ -61,6 +61,7 @@
           <div class="tagline">Işığın Yolculuğu</div>
         </div>
         <div class="menu"></div>
+        <img class="brand-sig" src="img/emmi-games-mini.svg" alt="EMMİ GAMES">
         <div class="title-foot">
           <span class="pill">${STAR}<b>${L.save.totalStars()}</b> / ${L.LEVELS.length * 3}</span>
           <span class="pill amber">${AMBER}<b>${U.fmt(sd.amber)}</b></span>
@@ -271,7 +272,8 @@
         });
         list.appendChild(r);
       }
-      list.appendChild(h('<p class="credit">Lumora v2.0 — tüm görseller ve sesler oyun içinde prosedürel olarak üretilir. Reklam yok, satın alma yok, internet gerekmez.</p>'));
+      list.appendChild(h('<div class="about"><img src="img/emmi-games-mini.svg" alt="EMMİ GAMES"><span>Bir EMMİ GAMES oyunu</span></div>'));
+      list.appendChild(h('<p class="credit">Lumora v2.1 — tüm görseller ve sesler oyun içinde prosedürel olarak üretilir. Reklam yok, satın alma yok, internet gerekmez.</p>'));
       this.show(el, 'settings');
     },
 
@@ -442,7 +444,7 @@
     // ---------- duraklatma ----------
     pause() {
       const el = h(`<div class="screen overlay">
-        <div class="dialog"><h2>Duraklatıldı</h2><div class="menu"></div></div></div>`);
+        <div class="dialog"><h2>Duraklatıldı</h2><div class="menu"></div><img class="sig-sm" src="img/emmi-games-mini.svg" alt="EMMİ GAMES"></div></div>`);
       const m = $('.menu', el);
       m.appendChild(this.btn('Devam Et', 'primary', () => L.flow.resume()));
       m.appendChild(this.btn('Yeniden Başla', '', () => L.flow.restart()));

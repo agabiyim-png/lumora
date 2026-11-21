@@ -168,9 +168,10 @@
     flow.menuScene();
     L.ui.title();
     requestAnimationFrame((t) => { last = t; frame(t); });
-    const b = document.getElementById('boot');
-    setTimeout(() => b.classList.add('out'), 200);
-    setTimeout(() => b.remove(), 1200);
+    // EMMİ GAMES açılışı: oyun bu sırada arka planda kurulur, animasyon bitince menü kendiliğinden görünür
+    if (window.EmmiSplash) {
+      try { window.EmmiSplash.play({ sound: L.save.data.settings.sfx }); } catch (e) { /* açılış olmadan devam */ }
+    }
     // menüde müzik ilk dokunuşla başlar
     document.addEventListener('pointerdown', () => { if (!L.audio.music) L.audio.startMusic(L.demo ? L.demo.biome : 0); }, { once: true });
   }

@@ -1,5 +1,7 @@
 # LUMORA — Işığın Yolculuğu
 
+*Bir EMMİ GAMES oyunu.* Stüdyonun marka kiti `marka/` klasöründe: logo, Play simgesi, kapak görseli, mini imza ve ortak açılış animasyonu.
+
 Gece, Lumora vadisini yuttu ve dev Ay Ağaçları söndü. Sen **Lumi**'sin: son ışık ruhu. Kaybolmuş kıvılcımları topla, sürünü büyüt, gölgeleri arındır ve her diyarın sonunda Ay Ağacı'nın fenerlerini yeniden yak.
 
 **Tek parmakla oynanır:** ekranın herhangi bir yerinde sürükle, Lumi parmağını takip eder.
