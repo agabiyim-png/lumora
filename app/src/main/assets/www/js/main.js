@@ -59,7 +59,7 @@
 
     pause() {
       if (!L.game || L.game.paused) return;
-      if (L.game.state !== 'play') return;
+      if (L.game.state !== 'play' && L.game.state !== 'boss') return;
       L.game.paused = true;
       L.ui.pause();
     },
@@ -92,7 +92,7 @@
     return 'ok';
   };
   L.onAppPause = function () {
-    if (L.game && L.game.state === 'play' && !L.game.paused) flow.pause();
+    if (L.game && (L.game.state === 'play' || L.game.state === 'boss') && !L.game.paused) flow.pause();
     L.audio.suspend();
   };
   L.onAppResume = function () { L.audio.resume(); };
@@ -113,7 +113,7 @@
     if (e.pointerId !== activeId) return;
     const dx = e.clientX - lx, dy = e.clientY - ly;
     lx = e.clientX; ly = e.clientY;
-    if (L.game && !L.game.paused && L.game.state === 'play') L.game.pointer(dx, dy);
+    if (L.game && !L.game.paused && (L.game.state === 'play' || L.game.state === 'boss')) L.game.pointer(dx, dy);
   });
   const end = (e) => { if (e.pointerId === activeId) activeId = null; };
   canvas.addEventListener('pointerup', end);

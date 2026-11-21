@@ -93,6 +93,10 @@
       if (this.has('power') && this.count % 5 === 3) push('power', 5);
       if (this.has('wind') && this.count % 9 === 6) push('wind', 8);
       if (this.has('golden') && this.count % 11 === 8) push('golden', 8);
+      const li = this.endless ? 99 : this.game.levelIndex;
+      if (li >= 2 && this.count % 7 === 4) push('chest', 9);
+      if (li >= 1 && this.count % 6 === 1) push('crystal', 5);
+      if (li >= 4 && !this.portalSet && this.count >= 9 && this.count % 3 === 0) push('portal', 7);
       if (this.has('chase') && !this.chaseSet && this.genY < this.endY * 0.45) push('chase', 50);
       // tekrarı azalt
       for (const o of options) if (this.lastKinds.indexOf(o[0]) >= 0) o[1] *= 0.35;
@@ -121,7 +125,11 @@
         case 'wind': h = this._wind(y0, d); break;
         case 'golden': h = this._golden(y0, d); break;
         case 'chase': h = this._chase(y0, d); break;
+        case 'chest': h = this._chest(y0, d); break;
+        case 'crystal': h = this._crystal(y0, d); break;
+        case 'portal': h = this._portal(y0, d); break;
       }
+      this._decor(y0, h);
       // seyrek kehribar
       if (r() < 0.22 + d * 0.1) this.add({ t: 'amber', x: W * (0.12 + r() * 0.76), y: y0 - h * r(), r: 9 });
       this.genY = y0 - h - (110 - d * 30) * (0.8 + r() * 0.5);
@@ -259,8 +267,7 @@
 
     _power(y, d) {
       const r = this.rnd, W = this.W;
-      const kinds = ['shield', 'magnet', 'nova', 'prism'];
-      const kind = kinds[r.int(0, 3)];
+      const kind = L.rollPower(L.powerPool(this.endless ? -1 : this.game.levelIndex));
       this.add({ t: 'power', kind, x: W * (0.25 + r() * 0.5), y: y - 60, r: 17 });
       return 140;
     }
@@ -272,6 +279,54 @@
       // akımın içinde bol kıvılcım nehri
       for (let i = 0; i < 22; i++) this.spark(W * 0.5 + Math.sin(i * 0.35) * W * 0.28, y - 40 - i * 38);
       return h;
+    }
+
+    // Büyülü sandık: genelde tehlikelerin arasında, risk alan oyuncuyu ödüllendirir
+    _chest(y, d) {
+      const r = this.rnd, W = this.W;
+      const x = W * (0.25 + r() * 0.5);
+      this.add({ t: 'chest', x, y: y - 90, r: 22 });
+      if (this.has('wisp') && d > 0.2) this.add({ t: 'wisp', x: x + (r() < 0.5 ? -70 : 70), y: y - 170, r: 16, speed: 18 + d * 20, ph: r() * 6, hp: 1 });
+      else if (this.has('vine')) {
+        const left = x > W / 2;
+        const pts = [];
+        for (let i = 0; i <= 5; i++) pts.push([left ? -20 + i * (W * 0.42) / 5 : W + 20 - i * (W * 0.42) / 5, y - 10 + Math.sin(i) * 10]);
+        this.add({ t: 'vine', pts, thick: 10, x: W / 2, y: y - 10, r: 0, seed: (r() * 1e9) | 0 });
+      }
+      return 220;
+    }
+
+    _crystal(y, d) {
+      const r = this.rnd, W = this.W;
+      const zs = L.ZONES[this.game.biome][this.game.zoneAt ? this.game.zoneAt(y) : 0];
+      const x = W * (0.25 + r() * 0.5);
+      this.add({ t: 'crystal', x, y: y - 80, r: 26, col: zs.cols[r.int(0, zs.cols.length - 1)], ph: r() * 6 });
+      for (let i = 0; i < 4; i++) this.spark(x + (i - 1.5) * 34, y - 170);
+      return 210;
+    }
+
+    // Gizli bölge geçidi: ana yolun dışında, kenarda
+    _portal(y, d) {
+      const r = this.rnd, W = this.W;
+      this.portalSet = true;
+      const left = r() < 0.5;
+      this.add({ t: 'portal', x: left ? 32 : W - 32, y: y - 80, r: 22, ph: 0 });
+      return 160;
+    }
+
+    // Parlayan bitki örtüsü (etkileşimsiz, bölgeye göre)
+    _decor(y0, h) {
+      const r = this.rnd, W = this.W;
+      const zi = this.game.zoneAt ? this.game.zoneAt(y0) : 0;
+      const zs = L.ZONES[this.game.biome][zi];
+      const n = 1 + (h > 200 ? 2 : 1);
+      for (let i = 0; i < n; i++) {
+        const side = r() < 0.5 ? 0 : 1;
+        const type = zs.flora[r.int(0, zs.flora.length - 1)];
+        const col = zs.cols[r.int(0, zs.cols.length - 1)];
+        const seed = r.int(0, 5);
+        this.game.addEnt({ t: 'decor', x: side ? W + 2 : -2, y: y0 - r() * Math.max(80, h), side, spr: L.Art.decor(type, col, seed), s: 0.75 + r() * 0.4, ph: r() * 6, col, r: 0 });
+      }
     }
 
     _golden(y, d) {

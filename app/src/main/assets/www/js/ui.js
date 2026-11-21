@@ -159,6 +159,7 @@
           <span class="pill amber">${AMBER}<b class="amber-val">${U.fmt(sd.amber)}</b></span></div>
         <div class="scroll">
           <h4 class="sec">Güçlendirmeler</h4><div class="ups"></div>
+          <h4 class="sec">Lumi Yetenekleri <small>boss'ları yenerek açılır</small></h4><div class="abil"></div>
           <h4 class="sec">Işık Ruhları <small>yıldız topladıkça açılır</small></h4><div class="skins"></div>
         </div></div>`);
       $('.tb-left', el).appendChild(this.btn('‹', 'ghost icon', () => this.title()));
@@ -181,6 +182,13 @@
         card.appendChild(b);
         ups.appendChild(card);
       });
+      const ab = $('.abil', el);
+      const req = { arrow: '5. seviye boss\'u', shell: '10. seviye boss\'u', storm: '15. seviye boss\'u' };
+      for (const id of Object.keys(L.ABILITIES)) {
+        const a = L.ABILITIES[id];
+        const on = !!sd.abilities[id];
+        ab.appendChild(h(`<div class="card ach ${on ? 'on' : ''}"><div class="ach-ic">${on ? a.icon : '🔒'}</div><div><b>${a.name}</b><span>${on ? a.desc : req[id] + 'nu yenince açılır'}</span></div></div>`));
+      }
       const skins = $('.skins', el);
       const stars = L.save.totalStars();
       L.SKINS.forEach((s) => {
@@ -263,7 +271,7 @@
         });
         list.appendChild(r);
       }
-      list.appendChild(h('<p class="credit">Lumora v1.0 — tüm görseller ve sesler oyun içinde prosedürel olarak üretilir. Reklam yok, satın alma yok, internet gerekmez.</p>'));
+      list.appendChild(h('<p class="credit">Lumora v2.0 — tüm görseller ve sesler oyun içinde prosedürel olarak üretilir. Reklam yok, satın alma yok, internet gerekmez.</p>'));
       this.show(el, 'settings');
     },
 
@@ -332,11 +340,63 @@
         last.c = q;
       }
       const lumi = game.lumi;
-      const pw = (lumi.shield > 0 ? 's' : '') + (lumi.magnet > 0 ? 'm' : '') + (lumi.prism > 0 ? 'p' : '');
+      const tm = (v) => Math.ceil(v);
+      const pw = `${lumi.shield}|${lumi.magnet > 0 ? tm(lumi.magnet) : ''}|${lumi.prism > 0 ? tm(lumi.prism) : ''}|${lumi.bolt > 0 ? tm(lumi.bolt) : ''}|${lumi.chain > 0 ? tm(lumi.chain) : ''}|${lumi.star > 0 ? tm(lumi.star) : ''}`;
       if (last.pw !== pw) {
-        r.powers.innerHTML = (lumi.shield > 0 ? '<span class="pw s">⬡ Kalkan</span>' : '') + (lumi.magnet > 0 ? '<span class="pw m">∩ Mıknatıs</span>' : '') + (lumi.prism > 0 ? '<span class="pw p">△ x2</span>' : '');
+        let h2 = '';
+        if (lumi.shield > 0) h2 += `<span class="pw s">⬡ ${'◆'.repeat(lumi.shield)}<i>${'◇'.repeat(Math.max(0, lumi.shieldMax - lumi.shield))}</i></span>`;
+        if (lumi.star > 0) h2 += `<span class="pw st">★ Yıldız ${tm(lumi.star)}</span>`;
+        if (lumi.bolt > 0) h2 += `<span class="pw b">➶ Mermi ${tm(lumi.bolt)}</span>`;
+        if (lumi.chain > 0) h2 += `<span class="pw c">ϟ Yıldırım ${tm(lumi.chain)}</span>`;
+        if (lumi.magnet > 0) h2 += `<span class="pw m">∩ Mıknatıs ${tm(lumi.magnet)}</span>`;
+        if (lumi.prism > 0) h2 += `<span class="pw p">△ x2 ${tm(lumi.prism)}</span>`;
+        r.powers.innerHTML = h2;
         last.pw = pw;
       }
+    },
+
+    // büyük, zarif kutlama yazısı (ZAFER!, MÜKEMMEL!, Gizli Bölge!)
+    celebrate(title, sub, col) {
+      document.querySelectorAll('.celebrate').forEach((x) => x.remove());
+      const fs = title.length > 12 ? 'clamp(26px, 8.5vw, 40px)' : title.length > 8 ? 'clamp(32px, 10vw, 50px)' : '';
+      const el = h(`<div class="celebrate" style="--c:${col || '#ffe08a'};${fs ? '--fs:' + fs : ''}"><div class="rays"></div><b>${title.split('').map((ch, i) => `<span style="animation-delay:${i * 0.05}s">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('')}</b><small>${sub || ''}</small></div>`);
+      document.body.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('in'));
+      setTimeout(() => el.classList.add('out'), 2300);
+      setTimeout(() => el.remove(), 3100);
+    },
+
+    bossIntro(name, tip, mini) {
+      if (!this.hudEl) return;
+      this.celebrate(name, mini ? 'Mini Boss' : 'BOSS', '#ff9ab0');
+      const bar = h(`<div class="bossbar"><div class="bb-name">${mini ? '◈' : '♛'} ${name}</div><div class="bb-track"><i></i></div><div class="bb-tip">${tip}</div></div>`);
+      this.hudEl.appendChild(bar);
+      this.bossFill = $('i', bar);
+      this.bossEl = bar;
+      requestAnimationFrame(() => bar.classList.add('in'));
+      setTimeout(() => { const tp = $('.bb-tip', bar); if (tp) tp.classList.add('gone'); }, 5000);
+    },
+    updateBoss(frac) {
+      if (this.bossFill) this.bossFill.style.transform = `scaleX(${Math.max(0, frac)})`;
+    },
+    bossEnd() {
+      if (this.bossEl) { const b = this.bossEl; b.classList.remove('in'); setTimeout(() => b.remove(), 600); }
+      this.bossEl = this.bossFill = null;
+    },
+
+    unlockAbility(id) {
+      const a = L.ABILITIES[id];
+      if (!a) return;
+      L.audio.unlock && L.audio.unlock();
+      U.vibrate(80);
+      const el = h(`<div class="unlock-ov"><div class="dialog unlock">
+        <small class="kicker">Yeni Yetenek Açıldı</small>
+        <div class="ab-ic"><span>${a.icon}</span></div>
+        <h2>${a.name}</h2><p class="tip">${a.desc}</p>
+        <div class="menu"></div></div></div>`);
+      const b = this.btn('Harika!', 'primary', () => { el.classList.add('out'); setTimeout(() => el.remove(), 350); });
+      $('.menu', el).appendChild(b);
+      document.body.appendChild(el);
     },
 
     banner(top, title) {
@@ -423,6 +483,7 @@
             <div><span>Arındırılan gölge</span><b>${r.purified}</b></div>
             <div><span>Açılan koza</span><b>${r.cocoons}</b></div>
             <div><span>Hasar</span><b>${r.hits === 0 ? 'Kusursuz ✦' : r.hits}</b></div>
+            ${r.bosses ? `<div class="wide"><span>Yenilen boss</span><b>♛ ${L.BOSS_NAMES[L.BOSSES[i].kind]}</b></div>` : ''}
           </div>
           <div class="earn">${AMBER}<b class="cnt">0</b><small>kehribar kazandın</small></div>
           ${gateMsg ? `<p class="gate">${gateMsg}</p>` : ''}
@@ -439,6 +500,7 @@
       m.appendChild(row);
       this.show(el, 'results');
 
+      if (s.unlock) setTimeout(() => { if (el.isConnected) this.unlockAbility(s.unlock); }, 2600 + s.stars * 420);
       // yıldız animasyonu
       const stars = el.querySelectorAll('.big-stars i');
       for (let k = 0; k < s.stars; k++) {

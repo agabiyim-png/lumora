@@ -13,10 +13,11 @@
       upgrades: { start: 0, magnet: 0, shield: 0, flare: 0, amber: 0 },
       skins: { owned: ['lumi'], selected: 'lumi' },
       achievements: {},
-      stats: { sparks: 0, purified: 0, runs: 0, wins: 0, deaths: 0, lanterns: 0, flares: 0, goldens: 0, cocoons: 0, endlessBest: 0, perfect: 0 },
+      stats: { sparks: 0, purified: 0, runs: 0, wins: 0, deaths: 0, lanterns: 0, flares: 0, goldens: 0, cocoons: 0, endlessBest: 0, perfect: 0, chests: 0, kills: 0, bosses: 0 },
       settings: { music: true, sfx: true, haptics: true },
       tutorialDone: false,
       seen: {},
+      abilities: {},
     };
   }
 
@@ -32,6 +33,7 @@
     if (src.levels) base.levels = src.levels;
     if (src.achievements) base.achievements = src.achievements;
     if (src.seen) base.seen = src.seen;
+    if (src.abilities) base.abilities = src.abilities;
     return base;
   }
 

@@ -294,6 +294,99 @@
       this._noiseHit(t, 0.15, { type: 'highpass', freq: 6000, vol: 0.08 });
     },
 
+
+    // ---- v2: savaş ve kutlama sesleri ----
+    crack(p) {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime, k = p || 1;
+      this._noiseHit(t, 0.12, { type: 'highpass', freq: 3500, vol: 0.18 });
+      this._tone(1800 * k + Math.random() * 300, t, 0.15, { type: 'triangle', vol: 0.05, slide: 0.6 });
+      this._tone(2600 * k, t + 0.01, 0.1, { type: 'sine', vol: 0.04 });
+    },
+    shatter(n) {
+      if (!this.ok) return;
+      const now = this.ctx.currentTime;
+      if (now - (this._lastShat || 0) < 0.05) return;
+      this._lastShat = now;
+      const k = Math.min(n || 1, 8);
+      this._noiseHit(now, 0.4, { type: 'highpass', freq: 2500, vol: 0.2 + k * 0.02, rev: 0.4 });
+      for (let i = 0; i < 4; i++) this._tone(mtof(84 + i * 3 + k * 2 + Math.random() * 3), now + i * 0.025, 0.35, { type: 'triangle', vol: 0.04, rev: 0.5 });
+      this._tone(160 - k * 6, now, 0.25, { type: 'sine', vol: 0.18, slide: 0.4 });
+    },
+    zap() {
+      if (!this.ok) return;
+      const now = this.ctx.currentTime;
+      if (now - (this._lastZap || 0) < 0.06) return;
+      this._lastZap = now;
+      this._tone(1400 + Math.random() * 200, now, 0.12, { type: 'square', vol: 0.025, slide: 0.35, filter: { freq: 3500 } });
+    },
+    thunder() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      this._noiseHit(t, 0.5, { type: 'bandpass', freq: 3000, to: 400, vol: 0.32, q: 0.8, rev: 0.5 });
+      this._tone(90, t, 0.5, { type: 'sawtooth', vol: 0.12, slide: 0.5, filter: { freq: 500 } });
+      for (let i = 0; i < 3; i++) this._noiseHit(t + 0.04 * i, 0.05, { type: 'highpass', freq: 5000, vol: 0.15 });
+    },
+    chest() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      this._tone(180, t, 0.2, { type: 'triangle', vol: 0.15, slide: 1.6 });
+      const m = MOODS[this.mood];
+      [0, 4, 7, 11, 14, 19].forEach((d, i) => this._bell(mtof(m.root + 24 + d), t + 0.15 + i * 0.05, 0.06, 1.2));
+    },
+    rare() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      [72, 76, 79, 84, 88, 91, 96].forEach((n, i) => this._bell(mtof(n), t + i * 0.06, 0.07, 1.6, 0.8));
+      [60, 64, 67].forEach((n) => this._tone(mtof(n), t + 0.4, 1.8, { type: 'triangle', vol: 0.07, attack: 0.05, rev: 0.8, filter: { freq: 2400 } }));
+      this._noiseHit(t, 1.2, { type: 'highpass', freq: 6000, vol: 0.06, attack: 0.3, rev: 0.7 });
+    },
+    roar() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      this._tone(70, t, 1.1, { type: 'sawtooth', vol: 0.18, slide: 0.6, attack: 0.08, filter: { freq: 380, to: 160 } });
+      this._tone(104, t, 1.0, { type: 'sawtooth', vol: 0.1, slide: 0.55, attack: 0.1, filter: { freq: 500 } });
+      this._noiseHit(t, 1.0, { freq: 500, to: 120, vol: 0.2, attack: 0.1 });
+    },
+    bossShot() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      this._tone(320, t, 0.25, { type: 'triangle', vol: 0.08, slide: 0.5 });
+    },
+    bossDown() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      this._noiseHit(t, 2.2, { freq: 2000, to: 80, vol: 0.5, rev: 0.8 });
+      this._tone(60, t, 2, { type: 'sine', vol: 0.5, slide: 0.4 });
+      const m = MOODS[this.mood];
+      const chords = [[0, 4, 7], [5, 9, 12], [7, 11, 14, 19], [12, 16, 19, 24]];
+      chords.forEach((c, i) => c.forEach((d) => this._tone(mtof(m.root + 12 + d), t + 0.6 + i * 0.32, 2.2, { type: 'triangle', vol: 0.07, attack: 0.03, rev: 0.8, filter: { freq: 3000 } })));
+      [0, 7, 12, 16, 19, 24, 28, 31].forEach((d, i) => this._bell(mtof(m.root + 24 + d), t + 1.9 + i * 0.07, 0.06, 2));
+    },
+    firework() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      this._noiseHit(t, 0.6, { freq: 1600, to: 200, vol: 0.22, rev: 0.6 });
+      for (let i = 0; i < 5; i++) this._noiseHit(t + 0.15 + Math.random() * 0.4, 0.04, { type: 'highpass', freq: 6000, vol: 0.08 });
+    },
+    zone() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      const m = MOODS[this.mood];
+      [0, 7, 12, 16].forEach((d, i) => this._bell(mtof(m.root + 12 + d), t + i * 0.12, 0.05, 2.2, 0.9));
+    },
+    secret() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      for (let i = 0; i < 12; i++) this._bell(mtof(67 + [0, 2, 4, 7, 9][i % 5] + 12 * Math.floor(i / 5)), t + i * 0.045, 0.05, 1.4, 0.8);
+    },
+    unlock() {
+      if (!this.ok) return;
+      const t = this.ctx.currentTime;
+      [[60, 64, 67], [65, 69, 72], [67, 71, 74, 79]].forEach((c, i) => c.forEach((n) => this._tone(mtof(n), t + i * 0.35, 1.8, { type: 'triangle', vol: 0.06, attack: 0.03, rev: 0.8 })));
+      [84, 88, 91, 96].forEach((n, i) => this._bell(mtof(n), t + 1.05 + i * 0.08, 0.07, 2));
+    },
+
     // ---- jeneratif müzik ----
     startMusic(mood) {
       this.init();

@@ -4,6 +4,23 @@ Gece, Lumora vadisini yuttu ve dev Ay Ağaçları söndü. Sen **Lumi**'sin: son
 
 **Tek parmakla oynanır:** ekranın herhangi bir yerinde sürükle, Lumi parmağını takip eder.
 
+## v2.0 — Büyülü dünya, savaş ve boss'lar
+
+- **Daha canlı dünya:** Her diyarda yolculuk boyunca değişen 3 bölge (ör. Ay Işığı Patikası → Zümrüt Açıklık → Ateşböceği Çayırı), parlayan mantarlar, çan çiçekleri, kristaller, eğrelti otları, mercanlar, renkli ateşböcekleri, Lumi'nin ışık izi ve rengârenk sürü.
+- **Lumi kendini savunur:**
+  - **Işık Kalkanı:** Katmanlı, dönen kalkan. Her darbede çatlar, rengi değişir, sonunda paramparça olur. Kalkana çarpan gölgeler parçalanır.
+  - **Işık Mermileri:** Yakındaki düşmanlara otomatik, güdümlü ışık küreleri.
+  - **Yıldırım Zinciri** (nadir): Düşmanları birbirine bağlayan şimşekler.
+  - **Süper Işık Patlaması:** Çok renkli şok dalgası, ışık huzmeleri; gölgeler parçalanıp kıvılcıma dönüşür.
+  - **Yıldız Gücü:** Kısa süreli yenilmezlik.
+- **Çatlama ve parçalanma:** Düşmanların canı var. Vuruldukça çatlıyor, parçalara ayrılıyor; parçalar ışık kıvılcımına dönüşüp sönüyor. Zincirleme yok etmelerde kombo yazısı, sarsıntı ve parlama var.
+- **Ödüller:** Nadirlik dereceli büyülü sandıklar (Sıradan / Nadir / Efsanevi / Hazine), kırılabilir kristal kümeleri, gizli "Altın Bahçe" bölgesi ve taçlı altın ateşböceği.
+- **Boss'lar:** Gölge Muhafızı, Karanlık Güve Kraliçesi, Kristal Golem ve Karanlığın Kalbi. Mini ve tam sürümleriyle 8 karşılaşma var.
+- **Kalıcı yetenekler:** Boss'ları yenince Işık Oku, Ay Kabuğu ve Fırtına Kalbi açılır.
+- **Kutlamalar:** ZAFER / MÜKEMMEL yazıları, ışık yağmuru, havai fişekler ve gövdeden tepeye ışıkla dolan Ay Ağacı.
+
+Çalışan v1.0 sürümü `yedek-v1.0` dalında ve `build-3` etiketinde korunuyor.
+
 ## Oynanış
 
 - **Kıvılcım sürüsü:** Topladığın her kıvılcım seni takip eden parlayan sürüye katılır. Sürü büyüdükçe ışığın da büyür ve karanlıkta daha fazlasını görürsün.
@@ -38,6 +55,9 @@ Gece, Lumora vadisini yuttu ve dev Ay Ağaçları söndü. Sen **Lumi**'sin: son
 | `js/game.js` | Oyun döngüsü, çarpışma, sürü fiziği, ışık maskesi, seviye sonu |
 | `js/levels.js` | Deterministik seviye üretici (desen parçaları) |
 | `js/art.js` | Prosedürel çizimler: Lumi, gölgeler, ağaç, arka planlar |
+| `js/art2.js` | v2 çizimleri: flora, sandık, kristal, portal, kalkan, yıldırım, kırıklar |
+| `js/combat.js` | v2 savaş, hasar/çatlama, güçler, ödüller, bölgeler (mixin) |
+| `js/bosses.js` | Mini boss ve boss'lar |
 | `js/audio.js` | Jeneratif müzik ve ses efektleri |
 | `js/ui.js` | Menüler, harita, atölye, HUD, sonuç ekranları |
 | `js/biomes.js` | Diyarlar, seviyeler, geliştirmeler, başarımlar |
