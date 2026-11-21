@@ -196,6 +196,10 @@
       this._tone(140, t, 0.4, { type: 'sine', vol: 0.5, slide: 0.35 });
       this._tone(73, t, 0.5, { type: 'triangle', vol: 0.25, slide: 0.5, filter: { freq: 600 } });
     },
+    pop() {
+      if (!this.ok) return;
+      this._tone(240, this.ctx.currentTime, 0.14, { type: 'triangle', vol: 0.07, slide: 0.45 });
+    },
     lose() {
       if (!this.ok) return;
       const t = this.ctx.currentTime;

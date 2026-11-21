@@ -351,6 +351,15 @@
           g.stroke();
         }
       }
+      // zehirli parıltı (tehlikeyi okunur kılar)
+      g.save();
+      g.shadowColor = U.rgba(b.shadowRim, 0.9);
+      g.shadowBlur = 14;
+      g.strokeStyle = U.rgba(b.shadowRim, 0.35);
+      g.lineWidth = thick * 1.25;
+      path();
+      g.stroke();
+      g.restore();
       // gövde
       g.strokeStyle = U.mix(b.near, '#000000', 0.35);
       g.lineWidth = thick;
@@ -1062,7 +1071,40 @@
           }, y);
         }
       }
-      layers.push({ canvas: far, f: 0.18, alpha: 0.85 });
+      // ön plan kenar bitkileri (derinlik hissi) — orman ve bahçe
+      if (b.id === 'forest' || b.id === 'garden') {
+        for (let k = 0; k < 9; k++) {
+          const side = k % 2, y = rnd() * TH;
+          const x0 = side ? W + 10 : -10;
+          wrap((yy) => {
+            const n = 4 + ((rnd() * 3) | 0);
+            for (let f = 0; f < n; f++) {
+              const ang = (side ? Math.PI : 0) + (side ? 1 : -1) * (-0.9 + f * 0.35 + (rnd() - 0.5) * 0.2);
+              const len = W * (0.16 + rnd() * 0.12);
+              const ex = x0 + Math.cos(ang) * len, ey = yy + Math.sin(ang) * len;
+              const mx = x0 + Math.cos(ang) * len * 0.5, my = yy + Math.sin(ang) * len * 0.5 - 14;
+              const nx = -Math.sin(ang), ny = Math.cos(ang);
+              const wd = len * 0.16;
+              const grd = gn.createLinearGradient(x0, yy, ex, ey);
+              grd.addColorStop(0, U.mix(b.near, '#000000', 0.3));
+              grd.addColorStop(1, U.mix(b.near, b.leafRim, 0.25));
+              gn.fillStyle = grd;
+              gn.beginPath();
+              gn.moveTo(x0, yy);
+              gn.quadraticCurveTo(mx + nx * wd, my + ny * wd, ex, ey);
+              gn.quadraticCurveTo(mx - nx * wd, my - ny * wd, x0, yy);
+              gn.fill();
+              gn.strokeStyle = U.rgba(b.leafRim, 0.35);
+              gn.lineWidth = 1.2;
+              gn.beginPath();
+              gn.moveTo(x0, yy);
+              gn.quadraticCurveTo(mx, my, ex, ey);
+              gn.stroke();
+            }
+          }, y);
+        }
+      }
+      layers.push({ canvas: far, f: 0.18, alpha: 0.6 });
       layers.push({ canvas: mid, f: 0.45, alpha: 1 });
       layers.push({ canvas: near, f: 0.85, alpha: 1 });
       return { layers, TH };

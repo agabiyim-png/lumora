@@ -12,7 +12,7 @@
       fog: '#3d8c95', far: '#123341', mid: '#0a2230', near: '#06141d',
       rim: '#7fd8d0', accent: '#8fffe0', glow2: '#5fc8ff',
       leaf: '#0f3a3a', leafRim: '#4fb3a0',
-      dark: 0.62, shadow: '#140a26', shadowRim: '#9a5cff',
+      dark: 0.5, shadow: '#140a26', shadowRim: '#9a5cff',
       moon: true,
     },
     {
@@ -54,7 +54,7 @@
   // feats: wisp, vine, moth, cocoon, wheel, jelly, meteor, web, chase, wind, golden, power
   const lv = (b, len, diff, feats, extra) => Object.assign({ biome: b, len, diff, feats }, extra || {});
   L.LEVELS = [
-    lv(0, 9, 0.0, ['vine'], { tutorial: true, title: 'Uyanış' }),
+    lv(0, 7, 0.0, ['vine'], { tutorial: true, title: 'Uyanış' }),
     lv(0, 11, 0.15, ['vine', 'wisp', 'power'], { title: 'İlk Gölgeler' }),
     lv(0, 12, 0.25, ['vine', 'wisp', 'cocoon', 'power', 'wind'], { title: 'Koza Fısıltısı' }),
     lv(0, 13, 0.35, ['vine', 'wisp', 'moth', 'cocoon', 'power', 'golden'], { title: 'Güve Gecesi' }),
