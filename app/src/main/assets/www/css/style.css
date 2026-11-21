@@ -112,6 +112,7 @@ svg { width: 1em; height: 1em; fill: currentColor; stroke: currentColor; stroke-
 /* harita */
 .map-scroll { flex: 1; overflow-y: auto; touch-action: pan-y; padding-bottom: calc(var(--sb) + 30px); }
 .biome { position: relative; margin: 10px 12px 18px; border-radius: 26px; padding: 16px 0 10px; overflow: hidden;
+  background: linear-gradient(180deg, var(--c), var(--b)); border: 1px solid rgba(255,255,255,.15);
   background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--a) 22%, transparent), transparent 70%), linear-gradient(180deg, var(--c), var(--b));
   border: 1px solid color-mix(in srgb, var(--a) 35%, transparent); box-shadow: 0 10px 30px rgba(0, 0, 0, .4), inset 0 0 40px color-mix(in srgb, var(--a) 12%, transparent); }
 .biome header { text-align: center; padding: 0 16px; }
